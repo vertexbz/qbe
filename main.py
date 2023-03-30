@@ -4,13 +4,22 @@ import json
 import argparse
 import shutil, errno
 
-def get_configs(path):
+def get_configs(args):
     configs = {}
-    for root, _, files in os.walk(path):
-        for file in files:
-            if file == "config.json":
-                with open(os.path.join(root, file), "r") as f:
-                    configs[root] = json.load(f)
+
+    if args.inputDir:
+        path = args.inputDir
+        for root, _, files in os.walk(path):
+            for file in files:
+                if file == "config.json":
+                    with open(os.path.join(root, file), "r") as f:
+                        configs[root] = json.load(f)
+    elif args.input:
+        with open(os.path.join(args.input, "config.json"), "r") as f:
+            configs[args.input] = json.load(f)
+    else:
+        raise
+
     return configs
 
 def copyanything(src, dst):
@@ -51,13 +60,19 @@ def blueprint(src, dst):
     else:
         print("`{}` exists, skipping.".format(dst))
 
+    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Assemble the configuration")
-    parser.add_argument("--inputDir", type=str, help="Directory path with config parts")
-    parser.add_argument("--output", type=str, help="Output config directory")
+    inputArgs = parser.add_mutually_exclusive_group()
+    inputArgs.add_argument("--inputDir", type=str, help="Directory path with config parts")
+    inputArgs.add_argument("--input", type=str, help="Config part path")
+    
+    parser.add_argument("--output", type=str, help="Output config directory", required=True)
     args = parser.parse_args()
-    configs = get_configs(args.inputDir)
+
+    configs = get_configs(args)
     outputDir = args.output
 
     for dir, config in configs.items():
