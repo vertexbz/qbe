@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "type": "object",
+  "title": "QBE Printer definition schema",
+  "additionalProperties": false,
+  "properties": {
+    "requires": {
+      "title": "Dependencies",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Dependency"
+      }
+    }
+  },
+  "required": [
+    "requires"
+  ],
+  "definitions": {
+    "Dependency": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/GitDependency"
+        },
+        {
+          "$ref": "#/definitions/ZipDependency"
+        },
+        {
+          "$ref": "#/definitions/LocalDependency"
+        },
+        {
+          "$ref": "#/definitions/InternalDependency"
+        }
+      ]
+    },
+    "InternalDependency": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseDependency"
+        }
+      ],
+      "properties": {
+        "internal": {
+          "type": "string",
+          "title": "Internal package name"
+        }
+      },
+      "required": [
+        "internal"
+      ]
+    },
+    "LocalDependency": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseDependency"
+        }
+      ],
+      "properties": {
+        "local": {
+          "type": "string",
+          "title": "Local package path"
+        }
+      },
+      "required": [
+        "local"
+      ]
+    },
+    "GitDependency": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseDependency"
+        }
+      ],
+      "properties": {
+        "git": {
+          "type": "string",
+          "title": "Repository address"
+        },
+        "branch": {
+          "type": "string",
+          "title": "Repository branch",
+          "default": "master"
+        }
+      },
+      "required": [
+        "git"
+      ]
+    },
+    "ZipDependency": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseDependency"
+        }
+      ],
+      "properties": {
+        "zip": {
+          "type": "string",
+          "title": "Archive path or url"
+        }
+      },
+      "required": [
+        "zip"
+      ]
+    },
+    "BaseDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "options": {
+          "type": "object",
+          "title": "Installation options",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}

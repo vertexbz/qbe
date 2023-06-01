@@ -1,0 +1,19 @@
+[Unit]
+Description=Provides camera access
+After=network.target klipper.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+SupplementaryGroups=video
+User={{ qbe.user }}
+RemainAfterExit=yes
+{% if qbe.options.focus is defined %}
+ExecStartPre=v4l2-ctl -d "{{ qbe.options.device }}" --set-ctrl focus_automatic_continuous=0
+ExecStartPre=v4l2-ctl -d "{{ qbe.options.device }}" --set-ctrl focus_absolute={{ qbe.options.focus }}
+{% endif %}
+ExecStart=/usr/local/bin/mjpg_streamer -i "{{ rpi_camera }}" -o "output_http.so -w /usr/local/share/mjpg-streamer/www"
+Restart=always
+RestartSec=10

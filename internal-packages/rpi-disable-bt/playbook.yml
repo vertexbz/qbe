@@ -1,0 +1,16 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Disable Bluetooth service
+      systemd:
+        name: hciuart
+        state: stopped
+        masked: true
+        enabled: false
+      ignore_errors: true
+
+    - name: Disable Bluetooth overlay
+      lineinfile:
+        line: dtoverlay=disable-bt
+        dest: /boot/config.txt
+        regexp: "^dtoverlay=disable-bt"

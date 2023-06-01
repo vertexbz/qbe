@@ -1,0 +1,8 @@
+name: klipper-z-calibration
+author: protoloft@github.com
+license: GNU GPL v3.0
+data-source:
+  git: https://github.com/protoloft/klipper_z_calibration.git
+provides:
+  klipper-extension:
+    - z_calibration.py

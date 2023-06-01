@@ -1,0 +1,5 @@
+name: rpi-lcd-35b2
+author: noone@nowhere.com
+license: WTF
+provides:
+  ansible: !PKG playbook.yml

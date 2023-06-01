@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# unused, left for historical reasons
 import os
 import json
 import argparse

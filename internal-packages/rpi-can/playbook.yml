@@ -1,0 +1,23 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Install CAN Utils
+      apt:
+        name: can-utils
+        state: present
+
+    - name: Enable CAN HAT device overlay
+      lineinfile:
+        line: dtoverlay=mcp2515-can0,oscillator=12000000,interrupt=25,spimaxfrequency=10000000
+        dest: /boot/config.txt
+        regexp: "^dtoverlay=mcp2515-can0"
+
+    - name: Setup can0 interface
+      copy:
+        dest: /etc/network/interfaces.d/can0
+        content: |
+          auto can0
+          iface can0 can static 
+              bitrate {{ qbe.options.bitrate|default(500000)|int }}
+              triple on
+              up ifconfig $IFACE txqueuelen {{ qbe.options.txqueuelen|default(1024)|int }}

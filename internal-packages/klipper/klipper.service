@@ -1,0 +1,19 @@
+[Unit]
+Description=Klipper 3D Printer Firmware SV1
+Documentation=https://www.klipper3d.org/
+After=network-online.target
+Before=moonraker.service
+Wants=udev.target
+
+[Install]
+Alias=klippy
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+User={{user}}
+RemainAfterExit=yes
+WorkingDirectory={{dirs.pkg}}
+ExecStart={{dirs.venv}}/bin/python {{dirs.pkg}}/klippy/klippy.py {{paths.klipper.config}} -l {{paths.klipper.log}} -I {{paths.klipper.serial}} -a {{paths.klipper.sock}}
+Restart=always
+RestartSec=10

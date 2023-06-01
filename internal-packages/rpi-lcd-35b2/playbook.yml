@@ -1,0 +1,80 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Create a directory for LCD drivers
+      ansible.builtin.file:
+        path: /usr/src/LCD-show
+        owner: '{{ qbe.user }}'
+        state: directory
+        mode: '0755'
+
+    - name: Checkout LCD drivers
+      become_user: '{{ qbe.user }}'
+      ansible.builtin.git:
+        repo: https://github.com/waveshare/LCD-show.git
+        dest: /usr/src/LCD-show
+        update: false
+      register: drivers_downloaded
+
+    - name: Install fbturbo
+      apt:
+        name: [ xserver-xorg-video-fbturbo, libxi6 ]
+        state: present
+      when: drivers_downloaded.changed == True
+
+    - name: Install drivers
+      ansible.builtin.shell: './LCD35B-show-V2 {{ qbe.options.rotation|default(0)|int }}'
+      args:
+        chdir: /usr/src/LCD-show
+        creates: /boot/overlays/waveshare35b-v2.dtbo
+
+    - name: Cleanup fbturbo
+      apt:
+        name: xserver-xorg-video-fbturbo
+        state: absent
+
+    - name: Remove additional rotation
+      lineinfile:
+        dest: /boot/config.txt
+        state: absent
+        regexp: "^display_rotate="
+
+    - name: Ensure correct rotation
+      lineinfile:
+        line: 'dtoverlay=waveshare35b-v2:rotate={{ qbe.options.rotation|default(0)|int }}'
+        dest: /boot/config.txt
+        regexp: "^dtoverlay=waveshare35b-v2"
+
+    - name: Cleanup X11 config
+      file:
+        path: /usr/share/X11/xorg.conf.d/40-libinput.conf
+        state: absent
+
+    - name: Cleanup X11 config
+      file:
+        path: /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+        state: absent
+
+    - name: Cleanup X11 config
+      when: qbe.options.rotation|default(0)|int == 270
+      file:
+        path: /usr/share/X11/xorg.conf.d/99-calibration.conf
+        state: absent
+
+    - name: Enable fb driver
+      lineinfile:
+        line: dtoverlay=vc4-fkms-v3d
+        dest: /boot/config.txt
+        regexp: "^dtoverlay=vc4-"
+
+    - name: Apply touchscreen calibration
+      when: qbe.options.rotation|default(0)|int == 270
+      copy:
+        dest: /etc/X11/xorg.conf.d/99-calibration.conf
+        content: |
+          Section "InputClass"
+                  Identifier      "calibration"
+                  MatchProduct    "ADS7846 Touchscreen"
+                  Option  "Calibration"   "227 3936 3880 268"
+                  Option  "SwapAxes"      "1"
+          EndSection

@@ -1,0 +1,22 @@
+[Unit]
+Description=Sidekick for Klipper 3D Printer Firmware SV1
+Documentation=https://www.klipper3d.org/
+Before=klipper.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+WatchdogSec=10
+
+RestartSec=1
+Restart=always
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=klipper-sidekick
+RemainAfterExit=yes
+
+User=root
+ExecStart=/bin/bash -c "rm -rf {{paths.klipper.serial}} {{paths.klipper.sock}} && mkdir -p {{paths.klipper.serial|dirname}} {{paths.klipper.sock|dirname}} && chown {{user}} {{paths.klipper.serial|dirname}} {{paths.klipper.sock|dirname}}"

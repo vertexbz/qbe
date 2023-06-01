@@ -1,0 +1,54 @@
+paths:
+  # mkdir -p ~/autoload-klipper ~/autoload-moonraker ~/autoload-screen ~/config ~/logs
+  data: ~/
+  packages: /opt
+  venvs: /var/opt
+  klipper:
+    config: ~/klipper.cfg
+    config-links: ~/autoload-klipper
+    sock: /run/klipper/klippy.sock
+    serial: /run/klipper/klippy.serial
+  moonraker:
+    config: ~/moonraker.conf
+    config-links: ~/autoload-moonraker
+  klipper-screen:
+    config: ~/screen.conf
+    config-links: ~/autoload-screen
+requires:
+  - internal: rpi-lcd-35b2
+    options:
+      rotation: 270
+  - internal: rpi-uart
+  - internal: rpi-clear-screen
+  - internal: rpi-disable-bt
+  #- internal: rpi-can  # didn't really test this one
+  #  options:
+  #    txqueuelen: 2048
+  #- internal: rpi-camera # didn't really test this one
+  #  options:
+  #    resolution: 1280x720
+  #    fps: 15
+  #    driver: uvc
+  #    device: /dev/video0
+  #    focus: 155
+  - internal: nginx
+  - internal: klipper
+    options:
+      loader: true
+  - internal: moonraker
+    options: # limits access to configuration you will not change anyways
+      loader: true
+      user_config: false
+  - internal: mainsail
+  - internal: moonraker-timelapse
+  - internal: klipper-happy-hare
+  - internal: klipper-stable-z-home
+  - internal: klipper-z-calibration
+  - internal: klipper-screen
+    options: # limits access to configuration you will not change anyways
+      loader: true
+      user_config: false
+  #- internal: klipper-screen-happy-hare # didn't really test this one
+  #  options: # limits access to configuration you will not change anyways
+  #    loader: true
+  #    user_config: false

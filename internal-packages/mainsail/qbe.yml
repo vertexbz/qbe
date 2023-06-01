@@ -1,0 +1,18 @@
+name: mainsail
+author: mainsail-crew@github.com
+license: GNU GPL v3.0
+data-source:
+  zip: https://github.com/mainsail-crew/mainsail/releases/latest/download/mainsail.zip
+provides:
+  system-config:
+    blueprint:
+      - [ !PKG mainsail, /etc/nginx/sites-available/mainsail ]
+    link:
+      - [ /etc/nginx/sites-available/mainsail, /etc/nginx/sites-enabled/mainsail ]
+triggers:
+  installed:
+    - service-reload: nginx
+  updated:
+    - service-reload: nginx
+  always:
+    - shell: !PKG update-icons.sh

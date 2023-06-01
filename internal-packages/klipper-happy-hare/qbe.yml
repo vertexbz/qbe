@@ -1,0 +1,10 @@
+name: klipper-happy-hare
+author: moggieuk@github.com
+license: GNU GPL v3.0
+data-source:
+  git: https://github.com/moggieuk/ERCF-Software-V3.git
+provides:
+  klipper-extension:
+    - [ extras/ercf.py, ercf.py ]
+    - [ extras/ercf_servo.py, ercf_servo.py ]
+    - [ extras/ercf_encoder.py, ercf_encoder.py ]

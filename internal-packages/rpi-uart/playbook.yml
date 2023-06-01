@@ -1,0 +1,40 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Disable kernel serial output
+      replace:
+        destfile: /boot/cmdline.txt
+        regexp: "console=serial0,115200 "
+        replace: ""
+
+    - name: Disable console on UART
+      systemd:
+        name: serial-getty@ttyAMA0.service
+        state: stopped
+        enabled: false
+
+    - name: Enable UART device overlay
+      lineinfile:
+        line: enable_uart=1
+        dest: /boot/config.txt
+        regexp: "^enable_uart="
+
+    - name: Disable Bluetooth service
+      systemd:
+        name: hciuart
+        state: stopped
+        masked: true
+        enabled: false
+      ignore_errors: true
+
+    - name: Disable Bluetooth overlay
+      lineinfile:
+        line: dtoverlay=disable-bt
+        dest: /boot/config.txt
+        regexp: "^dtoverlay=disable-bt"
+
+    - name: Add user to dialout group
+      user:
+        name: '{{ qbe.user }}'
+        groups: dialout
+        append: yes

@@ -1,0 +1,5 @@
+name: rpi-camera
+author: noone@nowhere.com
+license: WTF
+provides:
+  ansible: !PKG playbook.yml

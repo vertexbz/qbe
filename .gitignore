@@ -1,2 +1,10 @@
 /_result
 /_test
+/.venv
+/*.egg-info
+__pycache__
+.mypy_cache
+/qbes
+/qbe.yml
+/qbe.yaml
+/qbe.lock

@@ -1,0 +1,84 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: [ cmake, gcc, g++ ]
+        state: present
+
+    - name: Install RPi dependencies
+      apt:
+        name: [ libjpeg9-dev, libraspberrypi-dev ]
+        state: present
+
+    - name: Set GPU Memory to 256MB
+      lineinfile:
+        line: gpu_mem=256
+        dest: /boot/config.txt
+        regexp: "^gpu_mem="
+
+    - name: Set disable_poe_fan=1
+      lineinfile:
+        line: disable_poe_fan=1
+        dest: /boot/config.txt
+        regexp: "^disable_poe_fan="
+
+    - name: Set max_usb_current=1
+      lineinfile:
+        line: disable_poe_fan=1
+        dest: /boot/config.txt
+        regexp: "^max_usb_current="
+
+    - name: Create a directory for mjpg-streamer source
+      ansible.builtin.file:
+        path: /usr/src/mjpg-streamer
+        owner: '{{ qbe.user }}'
+        state: directory
+        mode: '0755'
+
+    - name: Checkout mjpg-streamer source
+      become_user: '{{ qbe.user }}'
+      ansible.builtin.git:
+        repo: https://github.com/jacksonliam/mjpg-streamer.git
+        dest: /usr/src/mjpg-streamer
+
+    - name: Force input_raspicam build
+      become_user: '{{ qbe.user }}'
+      ansible.builtin.replace:
+        path: /usr/src/mjpg-streamer/mjpg-streamer-experimental/plugins/input_raspicam/CMakeLists.txt
+        regexp: 'OFF'
+        replace: 'ON'
+
+    - name: Build mjpg-streamer
+      become_user: '{{ qbe.user }}'
+      make:
+        chdir: /usr/src/mjpg-streamer/mjpg-streamer-experimental/
+
+    - name: Install mjpg-streamer
+      make:
+        chdir: /usr/src/mjpg-streamer/mjpg-streamer-experimental/
+        target: install
+
+    - name: Configure raspicam resolution
+      when: qbe.options.driver == 'raspicam'
+      ansible.builtin.set_fact:
+        rpi_camera_resolution: '-x {{ (qbe.options.resolution|default("1280x720")).split("x")[0] }} -y {{ (qbe.options.resolution|default("1280x720")).split("x")[1] }}'
+
+    - name: Configure raspicam driver
+      when: qbe.options.driver == 'raspicam'
+      ansible.builtin.set_fact:
+        rpi_camera: 'input_raspicam.so {{ rpi_camera_resolution }} -fps {{ qbe.options.fps|default(15)|int }}'
+
+    - name: Configure uvc camera driver
+      when: qbe.options.driver == 'uvc'
+      ansible.builtin.set_fact:
+        rpi_camera: 'input_uvc.so -d {{ qbe.options.device|default("/dev/video0") }} -fps {{ qbe.options.fps|default(15)|int }} -r {{ qbe.options.resolution|default("1280x720") }}'
+
+    - name: Configure uvc camera service
+      when: rpi_camera is defined
+      ansible.builtin.template:
+        src: service.j2
+        dest: /etc/systemd/system/camera.service
+        owner: root
+        group: root
+        mode: '0644'

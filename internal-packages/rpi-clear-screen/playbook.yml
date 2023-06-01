@@ -1,0 +1,38 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Disable console on TTY1
+      systemd:
+        name: getty@tty1.service
+        state: stopped
+        enabled: false
+
+    - name: Enable backup console on TTY3
+      systemd:
+        name: getty@tty3.service
+        state: started
+        enabled: true
+
+    - name: Disable rainbow splash
+      lineinfile:
+        line: disable_splash=1
+        dest: /boot/config.txt
+        regexp: "^disable_splash="
+
+    - name: Disable IP text
+      lineinfile:
+        dest: /etc/rc.local
+        regexp: "^_IP="
+        state: absent
+
+    - name: Switch kernel flags
+      replace:
+        path: /boot/cmdline.txt
+        regexp: '^([\w](?!.*\b{{ item }}\b).*)$'
+        replace: '\1 {{ item }}'
+      with_items:
+        - "logo.nologo"
+        - "consoleblank=0"
+        - "loglevel=1"
+        - "quiet"
+        - "vt.global_cursor_default=0"

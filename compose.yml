@@ -1,0 +1,20 @@
+services:
+  host:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup
+      - ./:/opt/qbe
+      - ~/.ssh:/root/.ssh:ro
+      - ~/.ssh:/home/printer/.ssh:ro
+    # user: printer
+    tmpfs:
+      - /tmp
+      - /run
+      - /run/lock
+    cgroup_parent: docker.slice
+    cgroup: private
+    working_dir: /opt/qbe
+    # cap_add:
+    #   - SYS_ADMIN
