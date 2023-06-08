@@ -3,6 +3,7 @@ from typing import TypeVar, Type, Any, TYPE_CHECKING
 
 from qbe.utils.context import build_context
 from qbe.utils.obj import qrepr
+from qbe.utils.options import OptionsAwareOperation
 
 if TYPE_CHECKING:
     from qbe.package_provider import Dependency
@@ -14,8 +15,12 @@ class sentry:
     pass
 
 
-class Trigger:
+class Trigger(OptionsAwareOperation):
     def __init__(self, data: dict) -> None:
+        super().__init__()
+        self.only = data.get('only', {})
+        self.unless = data.get('unless', {})
+
         self.is_quiet = data.pop('quiet', True)
         self._data = data
 

@@ -70,7 +70,7 @@ class OperationMixin(BaseProvider):
             time.sleep(0.25)
 
             for operation in operations:
-                if not operation.available(self.options):
+                if not operation.available(self.dependency.options):
                     continue
 
                 if operation.target is True and default is None:

@@ -267,6 +267,14 @@
         },
         "daemon-reload": {
           "type": "boolean"
+        },
+        "only": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "unless": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     },
@@ -276,6 +284,14 @@
       "properties": {
         "gcode": {
           "type": "string"
+        },
+        "only": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "unless": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     },
@@ -285,6 +301,14 @@
       "properties": {
         "message": {
           "type": "string"
+        },
+        "only": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "unless": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     },
@@ -297,12 +321,19 @@
         },
         "quiet": {
           "type": "boolean"
+        },
+        "only": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "unless": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     },
     "Trigger": {
       "type": "object",
-      "additionalProperties": false,
       "anyOf": [
         {
           "$ref": "#/definitions/ShellTrigger"
@@ -316,21 +347,7 @@
         {
           "$ref": "#/definitions/ServiceReloadTrigger"
         }
-      ],
-      "properties": {
-        "shell": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "gcode": {
-          "type": "string"
-        },
-        "quiet": {
-          "type": "boolean"
-        }
-      }
+      ]
     },
     "BaseOperationArgs": {
       "anyOf": [

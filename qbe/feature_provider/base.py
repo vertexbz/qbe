@@ -3,6 +3,7 @@ import os
 from abc import abstractmethod
 from typing import Any, TypeVar, Generic, Union, TYPE_CHECKING
 from qbe.utils.obj import qrepr
+from qbe.utils.options import OptionsAwareOperation
 from qbe.utils.yaml import PkgTag
 from qbe.utils.context import build_context
 import qbe.cli as cli
@@ -16,12 +17,11 @@ BP_C = TypeVar('BP_C', bound='Any')
 
 
 class BaseProvider(Generic[BP_C]):
-    def __init__(self, config: Config, package: Package, dependency: Dependency, **kw) -> None:
+    def __init__(self, config: Config, package: Package, dependency: Dependency) -> None:
         super().__init__()
         self.config = config
         self.package = package
         self.dependency = dependency
-        self.options: dict[str, str] = kw.pop('options', {})
 
     @classmethod
     @abstractmethod
@@ -44,10 +44,9 @@ class BaseProvider(Generic[BP_C]):
         return os.path.join(self._base_path(file), str(file))
 
 
-class ConfigOperation:
+class ConfigOperation(OptionsAwareOperation):
     def __init__(self, args) -> None:
-        self.only: dict[str, Any] = {}
-        self.unless: dict[str, Any] = {}
+        super().__init__()
 
         if isinstance(args, dict) and 'source' in args and 'target' in args:
             self.source: str = args['source']
@@ -73,20 +72,3 @@ class ConfigOperation:
             raise ValueError(f'Invalid config entry {args}')
 
     __repr__ = qrepr()
-
-    def available(self, options: dict[str, str]):
-        if len(self.only) == 0 and len(self.unless) == 0:
-            return True
-
-        result = len(self.only) == 0
-        for key, state in self.only.items():
-            if options.get(key, None) == state:
-                result = True
-                break
-
-        for key, state in self.unless.items():
-            if options.get(key, None) == state:
-                result = False
-                break
-
-        return result

@@ -46,7 +46,10 @@ def multihandler(
 ):
     handlers: dict[str, AnyTriggerHandler] = {}
 
-    def handler(trigger: Trigger):
+    def handler(trigger: Trigger) -> None:
+        if not trigger.available(dependency.options):
+            return
+
         for discriminator in AVAILABLE_TRIGGERS:
             if discriminator not in trigger:
                 continue

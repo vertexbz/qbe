@@ -12,6 +12,11 @@ provides:
       - !PKG moonraker.service
     pip-requirements: scripts/moonraker-requirements.txt
   moonraker-config:
+    link:
+      - source: !PKG notifier/telegram.conf
+        target: moonraker.telegram.conf
+        only:
+          notifier-telegram: true
     template:
       - source: !PKG loader.conf
         target: true
@@ -31,4 +36,15 @@ triggers:
   installed:
     - shell: scripts/set-policykit-rules.sh --disable-systemctl
       quiet: true
-  
+  updated:
+    - message: |
+        moonraker.secrets:
+        
+        [printer]
+        name: Cetus/Ender/Prusa/Voron/...
+        
+        [telegram]
+        token: ...
+        chat: ...
+      only:
+        notifier-telegram: true

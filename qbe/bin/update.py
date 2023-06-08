@@ -1,7 +1,6 @@
 from __future__ import annotations
 import os
 import time
-import shlex
 from itertools import chain
 import qbe.cli as cli
 from qbe.handler import NotificationBag
@@ -62,7 +61,7 @@ def update(config: Config):
 
         for provider_name, provider_cls in AVAILABLE_PROVIDERS.items():
             if provider_name in package.provides:
-                provider = provider_cls(config, package, dependency, options=dependency.options)
+                provider = provider_cls(config, package, dependency)
                 provider.process(package.provides[provider_name], line, result.section(provider_name))
 
         line.print(_color_result(result.status))
@@ -80,7 +79,7 @@ def update(config: Config):
             for trigger in package.triggers.installed:
                 trigger_handler(trigger)
         if status == Status.UPDATED and len(package.triggers.updated) > 0:
-            for trigger in package.triggers.installed:
+            for trigger in package.triggers.updated:
                 trigger_handler(trigger)
         if len(package.triggers.always) > 0:
             for trigger in package.triggers.always:
