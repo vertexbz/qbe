@@ -17,4 +17,4 @@ def can_stats():
             ['Received', s.bytes_recv, s.packets_recv, s.errin, s.dropin],
             ['Sent', s.bytes_sent, s.packets_sent, s.errout, s.dropout]
         ]
-        print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
+        print(tabulate(table, headers='firstrow', tablefmt='rounded_grid', intfmt=','))
