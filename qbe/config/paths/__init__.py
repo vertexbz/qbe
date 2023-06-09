@@ -12,6 +12,7 @@ class ConfigPaths:
     def __init__(self, **kw) -> None:
         self._packages = pop_expand(kw, 'packages')
         self._venvs = pop_expand(kw, 'venvs')
+        self._state = pop_expand(kw, 'state')
         printer_data = kw.pop(PRINTER_DATA_KEY, None)
         moonraker = kw.pop('moonraker', {})
         if printer_data is not None and moonraker.get(PRINTER_DATA_KEY, None) is not None:
@@ -72,3 +73,7 @@ class ConfigPaths:
             return '/var/opt'
 
         return os.path.expanduser('~')
+
+    @property
+    def state(self):
+        return self._state or os.path.join(os.path.expanduser('~'), '.qbe')

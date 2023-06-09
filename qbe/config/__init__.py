@@ -3,6 +3,7 @@ import getpass
 from typing import Union
 import yaml
 from qbe.utils.obj import qrepr, qdict
+from .mcu import build_mcu
 from ..package_provider import build_dependency
 from .paths import ConfigPaths
 
@@ -19,6 +20,7 @@ class Config:
         self._user = kw.pop('user', getpass.getuser())
         self._paths = paths = ConfigPaths(**kw.pop('paths', {}))
         self._requires = [build_dependency(dep, paths) for dep in kw.pop('requires', [])]
+        self._mcus = [build_mcu(mcu) for mcu in kw.pop('mcus', [])]
 
     __repr__ = qrepr()
     __dict__ = qdict()
@@ -38,6 +40,10 @@ class Config:
     @property
     def requires(self):
         return self._requires
+
+    @property
+    def mcus(self):
+        return self._mcus
 
 
 def load(file: str) -> Config:

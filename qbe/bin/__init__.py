@@ -45,5 +45,5 @@ def entry(ctx: click.Context, config: str):
 __path__ = pkgutil.extend_path(__path__, __name__)
 for imp, module, ispackage in pkgutil.iter_modules(path=__path__, prefix=__name__ + '.'):
     im = importlib.import_module(module)
-    for _, command in getmembers(im, lambda x: isinstance(x, click.Command)):
+    for _, command in getmembers(im, lambda x: isinstance(x, (click.Command, click.Group))):
         entry.add_command(command)

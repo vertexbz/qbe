@@ -10,12 +10,43 @@
       "items": {
         "$ref": "#/definitions/Dependency"
       }
+    },
+    "mcus": {
+      "title": "MCUs",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/MCU"
+      }
     }
   },
   "required": [
     "requires"
   ],
   "definitions": {
+    "MCU": {
+      "type": "object",
+      "a": "",
+      "properties": {
+        "allOf": [
+          {
+            "preset": {
+              "title": "Config preset to use",
+              "type": "string"
+            }
+          }
+        ],
+        "oneOf": [
+          {
+            "can-id": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "required": [
+        "preset"
+      ]
+    },
     "Dependency": {
       "anyOf": [
         {

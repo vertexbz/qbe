@@ -2,7 +2,7 @@ import os
 import tempfile
 from typing import Union
 from .service import find, KlipperService, MoonrakerService, KlipperScreenService, SystemdService
-from .runner import Pip, Sudo, Apt, Shell, Systemctl
+from .runner import Pip, Command, Sudo, Apt, Shell, Systemctl
 
 
 class filler:
@@ -81,6 +81,6 @@ def sudo_write(data: str, target: str):
 
 
 __all__ = [
-    'services', 'Sudo', 'Pip', 'apt', 'Shell', 'sudo_cp', 'sudo_write', 'systemctl', 'find',
+    'services', 'Command', 'Sudo', 'Pip', 'apt', 'Shell', 'sudo_cp', 'sudo_write', 'systemctl', 'find',
     'KlipperService', 'MoonrakerService', 'KlipperScreenService'
 ]

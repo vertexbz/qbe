@@ -4,13 +4,16 @@ from functools import update_wrapper
 import click
 from click._compat import term_len
 
+
 class Error(click.ClickException):
-    def show(self, file = None) -> None:
+    def show(self, file=None) -> None:
         echo(click.style(f'Error: {self.format_message()}', fg='red'), err=True)
 
+
 # pylint: disable-next=invalid-name
-def echo(msg = None, nl: bool = True, err: bool = False):
+def echo(msg=None, nl: bool = True, err: bool = False):
     click.echo(msg, nl=nl, err=err)
+
 
 def bold(text: str) -> str:
     return ''.join([
@@ -18,7 +21,9 @@ def bold(text: str) -> str:
         click.style('', bold=False, reset=False)
     ])
 
+
 CODE_DIM = click.style('', dim=True, reset=False)
+
 
 def dim(text: str) -> str:
     return ''.join([
@@ -26,23 +31,30 @@ def dim(text: str) -> str:
         click.style('', dim=False, reset=False)
     ])
 
+
 def success(text: str) -> str:
     return click.style(text, fg='green', dim=True, reset=True)
+
 
 def message(text: str) -> str:
     return click.style(text, fg='blue', dim=True, reset=True)
 
+
 def message_important(text: str) -> str:
     return click.style(text, fg='blue', dim=False, reset=True)
+
 
 def message_content(text: str) -> str:
     return click.style(text, dim=False, reset=True)
 
+
 def updated(text: str) -> str:
     return click.style(text, fg='green', reset=True)
 
+
 def error(text: str) -> str:
     return click.style(text, fg='red', reset=True)
+
 
 if os.name == 'nt':
     BEFORE_BAR = '\r'
@@ -50,6 +62,7 @@ if os.name == 'nt':
 else:
     BEFORE_BAR = '\r\033[?25l'
     AFTER_BAR = '\033[?25h\n'
+
 
 class Line:
     def __init__(self, **kwargs) -> None:
@@ -63,7 +76,7 @@ class Line:
         buf.append(' ' * self.max_width)
         click.echo(''.join(buf), nl=False)
 
-    def print(self, line: str, prefix = True, suffix = True, fillup = True) -> None:
+    def print(self, line: str, prefix=True, suffix=True, fillup=True) -> None:
         out = ''
         if prefix:
             out = out + self.prefix
@@ -92,11 +105,18 @@ class Line:
 
 
 F = t.TypeVar('F', bound=t.Callable[..., t.Any])
+
+
 def pass_config(f: F) -> F:
     def new_func(*args, **kwargs):  # type: ignore
         return f(click.get_current_context().obj, *args, **kwargs)
 
     return update_wrapper(t.cast(F, new_func), f)
 
+
 option = click.option
 command = click.command
+argument = click.argument
+group = click.group
+Command = click.Command
+Group = click.Group

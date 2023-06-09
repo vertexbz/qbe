@@ -13,7 +13,7 @@ class SystemdService:
     def __init__(self, unit, service) -> None:
         self.id = unit.Id
         self.description = unit.Description
-        self.srcdir = service.WorkingDirectory
+        self.srcdir = service.WorkingDirectory.decode('utf-8')
         self.envdir = os.path.dirname(os.path.dirname(service.ExecStart[0][0]))
 
         args = service.ExecStart[0][1][2:]
@@ -41,6 +41,13 @@ class KlipperService(SystemdService):
         self.tty = os.path.expanduser(options.inputtty)
         self.apiserver = os.path.expanduser(options.apiserver)
         self.logfile = os.path.expanduser(options.logfile)
+
+    def gcode(self, gcode: str):
+        if not os.path.exists(self.tty):
+            raise FileExistsError('klipper tty not exists')
+
+        tty = os.open(self.tty, os.O_RDWR)
+        os.write(tty, (gcode + '\n').encode('utf-8'))
 
 
 class KlipperScreenService(SystemdService):
