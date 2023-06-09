@@ -12,9 +12,8 @@ def can_stats():
         raise cli.Error('No can interfaces found!')
 
     for iface, s in stats.items():
-        print(cli.bold(iface))
         table = [
-            ['', 'Bytes', 'Packets', 'Errors', 'Dropped'],
+            [cli.bold(iface), 'Bytes', 'Packets', 'Errors', 'Dropped'],
             ['Received', s.bytes_recv, s.packets_recv, s.errin, s.dropin],
             ['Sent', s.bytes_sent, s.packets_sent, s.errout, s.dropout]
         ]
