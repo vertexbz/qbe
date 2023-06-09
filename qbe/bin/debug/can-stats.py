@@ -15,7 +15,7 @@ def can_stats():
         print(cli.bold(iface))
         table = [
             ['', 'Bytes', 'Packets', 'Errors', 'Dropped'],
-            ['Sent', s.bytes_sent, s.packets_sent, s.errout, s.dropout],
-            ['Received', s.bytes_recv, s.packets_recv, s.errin, s.dropin]
+            ['Received', s.bytes_recv, s.packets_recv, s.errin, s.dropin],
+            ['Sent', s.bytes_sent, s.packets_sent, s.errout, s.dropout]
         ]
-        print(tabulate(table))
+        print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
