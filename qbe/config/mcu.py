@@ -64,6 +64,7 @@ class CanMCU(BaseMCU):
     def __init__(self, preset: str, config: dict, paths: ConfigPaths):
         super().__init__(preset, config, paths)
         self.can_id = str(config.pop('can-id'))
+        self.interface = config.pop('interface', 'can0')
 
     @property
     def fw_name(self):
