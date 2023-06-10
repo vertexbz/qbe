@@ -77,3 +77,7 @@ class ConfigPaths:
     @property
     def state(self):
         return self._state or os.path.join(os.path.expanduser('~'), '.qbe')
+
+    @property
+    def firmwares(self):
+        return os.path.join(self.moonraker.data, 'firmware')

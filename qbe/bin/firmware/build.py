@@ -5,6 +5,7 @@ import shutil
 
 import qbe.cli as cli
 from qbe.config import Config
+from qbe.config.mcu import MCUFwStatus
 from qbe.support import services, Command
 
 
@@ -15,22 +16,17 @@ def build(config: Config):
         raise cli.Error('klipper not found')
 
     make = Command('/usr/bin/make', cwd=services.klipper.srcdir)
-    klipper_head = os.path.join(services.klipper.srcdir, '.git', 'FETCH_HEAD')
     target_config = os.path.join(services.klipper.srcdir, '.config')
     target_path = os.path.join(services.klipper.srcdir, 'out', 'klipper.bin')
-    build_firmwares_dir = os.path.join(config.paths.moonraker.data, 'firmware')
 
-    os.makedirs(build_firmwares_dir, exist_ok=True)
+    os.makedirs(config.paths.firmwares, exist_ok=True)
 
     for mcu in config.mcus:
-        fw_file = mcu.fw_name + '.bin'
-        firmware_path = os.path.join(build_firmwares_dir, fw_file)
-
-        if os.path.exists(firmware_path) and os.path.getmtime(firmware_path) > os.path.getmtime(klipper_head):
-            print(cli.dim(f'skipping {cli.bold(fw_file)}{cli.CODE_DIM} - up to date'))
+        if mcu.fw_status not in (MCUFwStatus.ABSENT, MCUFwStatus.OUTDATED):
+            print(cli.dim(f'skipping {cli.bold(mcu.fw_file)}{cli.CODE_DIM} - up to date'))
             continue
 
-        print(f'building {cli.bold(fw_file)}... ', end='', flush=True)
+        print(f'building {cli.bold(mcu.fw_file)}... ', end='', flush=True)
 
         make.piped(['clean'])
 
@@ -39,7 +35,7 @@ def build(config: Config):
 
         make.piped([])
 
-        shutil.copyfile(target_path, firmware_path)
+        shutil.copyfile(target_path, mcu.fw_path)
 
         print(cli.success('OK'))
 

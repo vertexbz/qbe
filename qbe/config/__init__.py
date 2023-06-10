@@ -20,7 +20,7 @@ class Config:
         self._user = kw.pop('user', getpass.getuser())
         self._paths = paths = ConfigPaths(**kw.pop('paths', {}))
         self._requires = [build_dependency(dep, paths) for dep in kw.pop('requires', [])]
-        self._mcus = [build_mcu(mcu) for mcu in kw.pop('mcus', [])]
+        self._mcus = [build_mcu(mcu, paths) for mcu in kw.pop('mcus', [])]
 
     __repr__ = qrepr()
     __dict__ = qdict()
