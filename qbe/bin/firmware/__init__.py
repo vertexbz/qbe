@@ -7,7 +7,7 @@ import pkgutil
 import qbe.cli as cli
 
 
-@cli.group()
+@cli.group(short_help='Automated firmware build / update')
 def firmware():
     pass
 

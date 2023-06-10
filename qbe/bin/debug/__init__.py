@@ -7,7 +7,7 @@ import pkgutil
 import qbe.cli as cli
 
 
-@cli.group()
+@cli.group(short_help='Debug / misc stuff')
 def debug():
     pass
 

@@ -17,7 +17,7 @@ def _fw_status_to_str(status: MCUFwStatus) -> str:
     raise ValueError('unknown status')
 
 
-@cli.command(short_help='List available mcus')
+@cli.command(short_help='Show mcus')
 @cli.option('--long', '-l', is_flag=True, default=False)
 @cli.pass_config
 def mcus(config: Config, long: bool):
@@ -28,12 +28,13 @@ def mcus(config: Config, long: bool):
         print('- ', end='')
         print(cli.bold(mcu.name))
         print('  Firmware status: ' + _fw_status_to_str(mcu.fw_status))
-        print('  Firmware preset: ' + info.pop('preset'))
-        cli.dict_print(info, indent=1)
+        print('  Firmware preset: ' + cli.message_important(info.pop('preset')))
+        print('  Firmware file: ' + cli.message_important(mcu.fw_file))
         if len(options.keys()) > 0:
             print('  Options:')
             cli.dict_print(options, indent=2)
+        cli.dict_print(info, indent=1)
         if long:
-            print('  config:')
-            [print('    ' + cli.message(l)) for l in mcu.render_config().split('\n') if not l.startswith('#')]
+            print('  Config:')
+            [print('    ' + cli.dim(l)) for l in mcu.render_config().split('\n') if not l.startswith('#')]
         print()
