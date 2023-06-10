@@ -23,5 +23,5 @@ def can_stats():
              cli.error(str(s.dropout)) if s.dropout > 0 else '0'
              ]
         ]
-        print(tabulate(table, headers='firstrow', tablefmt='rounded_grid', intfmt=',',
+        print(tabulate(table, headers='firstrow', tablefmt='rounded_grid',
                        colalign=('left', 'right', 'right', 'right', 'right')))
