@@ -4,7 +4,7 @@ from qbe.config import Config
 
 
 @cli.command(short_help='List available mcus')
-@cli.option('--long', is_flag=True, default=False)
+@cli.option('--long', '-l', is_flag=True, default=False)
 @cli.pass_config
 def mcus(config: Config, long: bool):
     for mcu in config.mcus:

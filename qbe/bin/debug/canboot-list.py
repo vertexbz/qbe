@@ -7,7 +7,7 @@ from qbe.support.canboot import CanSocket
 
 
 @cli.command(short_help='Lists CanBoot devices')
-@cli.option('--interface', default='can0')
+@cli.option('--interface', '-i', default='can0')
 def canboot_list(interface: str):
     loop = asyncio.get_event_loop()
     sock = None
@@ -20,4 +20,4 @@ def canboot_list(interface: str):
         if sock is not None:
             sock.close()
 
-    print(cli.success("Query Complete"))
+    print(cli.success('Query Complete'))

@@ -9,12 +9,12 @@ from qbe.utils import jinja
 class BaseMCU:
     def __init__(self, preset: str, config: dict):
         self.preset = preset
-        self.overrides = config.pop('overrides', {})
+        self.options = config.pop('options', {})
 
     @property
     def info(self):
         return {
-            'overrides': self.overrides
+            'options': self.options
         }
 
     @property
@@ -23,7 +23,7 @@ class BaseMCU:
 
     def render_config(self) -> str:
         preset_path = os.path.join('firmware-presets', self.preset + '.config')
-        return jinja.render_file(preset_path, self.overrides)
+        return jinja.render_file(preset_path, self.options)
 
 
 class CanMCU(BaseMCU):
