@@ -41,7 +41,7 @@ Update `~/qbe.yml`
 qbe update
 ```
 
-If your setup requires system changes it ma be worth to reboot after run
+If your setup requires system changes it may be worth to reboot after run
 
 # TODO
 
