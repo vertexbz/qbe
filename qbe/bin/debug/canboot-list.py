@@ -17,6 +17,8 @@ def canboot_list(interface: str):
     loop = asyncio.get_event_loop()
     try:
         sock = create_socket(loop)
+    except ModuleNotFoundError as e:
+        raise cli.Error(str(e))
     except:
         raise cli.Error('failed acquiring can interface')
 
