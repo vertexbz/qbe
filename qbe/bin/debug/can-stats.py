@@ -15,12 +15,13 @@ def can_stats():
         table = [
             [cli.bold(iface), 'Bytes', 'Packets', cli.error('Errors'), cli.error('Dropped')],
             ['Received', s.bytes_recv, s.packets_recv,
-             cli.error(s.errin) if s.errin > 0 else s.errin,
-             cli.error(s.dropin) if s.dropin > 0 else s.dropin,
+             cli.error(str(s.errin)) if s.errin > 0 else '0',
+             cli.error(str(s.dropin)) if s.dropin > 0 else '0',
              ],
             ['Sent', s.bytes_sent, s.packets_sent,
-             cli.error(s.errout) if s.errout > 0 else s.errout,
-             cli.error(s.dropout) if s.dropout > 0 else s.dropout
+             cli.error(str(s.errout)) if s.errout > 0 else '0',
+             cli.error(str(s.dropout)) if s.dropout > 0 else '0'
              ]
         ]
-        print(tabulate(table, headers='firstrow', tablefmt='rounded_grid', intfmt=','))
+        print(tabulate(table, headers='firstrow', tablefmt='rounded_grid', intfmt=',',
+                       colalign=('left', 'right', 'right', 'right', 'right')))
