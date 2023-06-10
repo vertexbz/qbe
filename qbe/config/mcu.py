@@ -72,7 +72,7 @@ class CanMCU(BaseMCU):
 
     @property
     def info(self):
-        return {'can-id': self.can_id, **super().info}
+        return {'can-id': self.can_id, 'interface': self.interface, **super().info}
 
 
 AVAILABLE_TYPES = {
