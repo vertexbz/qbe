@@ -30,10 +30,10 @@ def mcus(config: Config, long: bool):
         print('  Firmware status: ' + _fw_status_to_str(mcu.fw_status))
         print('  Firmware preset: ' + cli.message_important(info.pop('preset')))
         print('  Firmware file: ' + cli.message_important(mcu.fw_file))
+        cli.dict_print(info, indent=1, capitalize=True)
         if len(options.keys()) > 0:
             print('  Options:')
             cli.dict_print(options, indent=2)
-        cli.dict_print(info, indent=1)
         if long:
             print('  Config:')
             [print('    ' + cli.dim(l)) for l in mcu.render_config().split('\n') if not l.startswith('#')]

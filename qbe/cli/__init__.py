@@ -126,10 +126,13 @@ Command = click.Command
 Group = click.Group
 
 
-def dict_print(paths: dict, indent=0):
-    for k, v in paths.items():
+def dict_print(d: dict[str, t.Any], indent=0, capitalize: t.Union[bool, int] = False):
+    for k, v in d.items():
+        if capitalize is True or capitalize > 0:
+            k = '-'.join('ID' if word.lower() == 'id' else word.capitalize() for word in k.split('-'))
+
         if isinstance(v, dict):
             print('  ' * indent + k + ':')
-            dict_print(v, indent=indent + 1)
+            dict_print(v, indent=indent + 1, capitalize=capitalize if isinstance(capitalize, bool) else capitalize - 1)
         else:
             print('  ' * indent + k + ': ' + message_important(v))
