@@ -8,3 +8,4 @@ __pycache__
 /qbe.yml
 /qbe.yaml
 /qbe.lock
+/qbe/support/_canboot.py

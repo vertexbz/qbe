@@ -6,9 +6,8 @@ import re
 from tabulate import tabulate
 
 import qbe.cli as cli
-import qbe.support.canboot as canboot
+from qbe.support.canboot import create_socket, hijack_output, restore_output
 
-output_line = canboot.output_line
 re_device_uuid = r"Detected UUID: ([^,]+), Application: (.+)"
 
 
@@ -17,7 +16,7 @@ re_device_uuid = r"Detected UUID: ([^,]+), Application: (.+)"
 def canboot_list(interface: str):
     loop = asyncio.get_event_loop()
     try:
-        sock = canboot.CanSocket(loop)
+        sock = create_socket(loop)
     except:
         raise cli.Error('failed acquiring can interface')
 
@@ -37,12 +36,12 @@ def canboot_list(interface: str):
         print(msg)
 
     try:
-        canboot.output_line = hijack_line
+        hijack_output(hijack_line)
         loop.run_until_complete(sock.run_query(interface))
     except Exception as e:
         raise cli.Error('Can query error: ' + str(e))
     finally:
-        canboot.output_line = output_line
+        restore_output()
 
     sock.close()
 

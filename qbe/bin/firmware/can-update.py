@@ -11,10 +11,8 @@ from qbe.config import Config
 from qbe.config.mcu import CanMCU
 from qbe.config.mcu import MCUFwStatus
 from qbe.support import services
-import qbe.support.canboot as canboot
+from qbe.support.canboot import create_socket, hijack_output, restore_output
 from .build import build_firmware
-
-output_line = canboot.output_line
 
 
 def hijack_line(msg: str) -> None:
@@ -41,7 +39,7 @@ def can_update(config: Config, name: Union[str, None], all: bool):
 
     loop = asyncio.get_event_loop()
     try:
-        sock = canboot.CanSocket(loop)
+        sock = create_socket(loop)
     except:
         raise cli.Error('failed acquiring can interface')
 
@@ -68,14 +66,14 @@ def can_update(config: Config, name: Union[str, None], all: bool):
         line.print(f'Flashing {cli.bold(mcu.name)} firmware...')
 
         try:
-            canboot.output_line = hijack_line
+            hijack_output(hijack_line)
             loop.run_until_complete(sock.run(mcu.interface, int(mcu.can_id, 16), pathlib.Path(mcu.fw_path), False))
         except Exception as e:
             line.finish()
             print(cli.error('CAN flash error: ') + cli.error(str(e)))
             continue
         finally:
-            canboot.output_line = output_line
+            restore_output()
 
         line.print(cli.updated('MCU ') + cli.updated(cli.bold(mcu.name)) + cli.updated(' updated!'))
 

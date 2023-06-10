@@ -5,3 +5,6 @@ homepage: https://github.com/Arksine/CanBoot
 data-source:
   git: https://github.com/Arksine/CanBoot
 provides: {}
+triggers:
+  installed:
+    - shell: !PKG link.sh
