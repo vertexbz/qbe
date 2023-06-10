@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import hashlib
 import os.path
 from enum import Enum
 from typing import Union, TYPE_CHECKING
@@ -20,12 +22,14 @@ class MCUFwStatus(Enum):
 class BaseMCU:
     def __init__(self, preset: str, config: dict, paths: ConfigPaths):
         self.preset = preset
+        self.name = config.pop('name', preset)
         self.options = config.pop('options', {})
         self._target_dir = paths.firmwares
 
     @property
     def info(self):
         return {
+            'preset': self.preset,
             'options': self.options
         }
 
@@ -35,7 +39,9 @@ class BaseMCU:
 
     @property
     def fw_file(self):
-        return self.fw_name + '.bin'
+        hash_object = hashlib.sha256(str(self.options).encode('utf-8'))
+        short_hash = hash_object.hexdigest()[:8]
+        return self.fw_name + '-' + short_hash + '.bin'
 
     @property
     def fw_path(self):
@@ -65,10 +71,6 @@ class CanMCU(BaseMCU):
         super().__init__(preset, config, paths)
         self.can_id = str(config.pop('can-id'))
         self.interface = config.pop('interface', 'can0')
-
-    @property
-    def fw_name(self):
-        return self.preset + '-' + self.can_id
 
     @property
     def info(self):

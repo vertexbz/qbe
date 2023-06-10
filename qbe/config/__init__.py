@@ -43,6 +43,8 @@ class Config:
 
     @property
     def mcus(self):
+        if len(self._mcus) == 0:
+            raise ValueError('no configured MCUs')
         return self._mcus
 
 

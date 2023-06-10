@@ -32,6 +32,10 @@
             "preset": {
               "title": "Config preset to use",
               "type": "string"
+            },
+            "name": {
+              "title": "custom name",
+              "type": "string"
             }
           }
         ],

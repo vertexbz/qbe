@@ -124,3 +124,12 @@ argument = click.argument
 group = click.group
 Command = click.Command
 Group = click.Group
+
+
+def dict_print(paths: dict, indent=0):
+    for k, v in paths.items():
+        if isinstance(v, dict):
+            print('  ' * indent + k + ':')
+            dict_print(v, indent=indent + 1)
+        else:
+            print('  ' * indent + k + ': ' + message_important(v))

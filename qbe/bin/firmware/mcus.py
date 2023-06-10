@@ -22,10 +22,17 @@ def _fw_status_to_str(status: MCUFwStatus) -> str:
 @cli.pass_config
 def mcus(config: Config, long: bool):
     for mcu in config.mcus:
+        info = dict(mcu.info)
+        options = info.pop('options', {})
+
         print('- ', end='')
-        print(cli.bold(mcu.preset))
+        print(cli.bold(mcu.name))
         print('  Firmware status: ' + _fw_status_to_str(mcu.fw_status))
-        [print('  ' + k + ': ' + cli.message_important(v)) for k, v in mcu.info.items()]
+        print('  Firmware preset: ' + info.pop('preset'))
+        cli.dict_print(info, indent=1)
+        if len(options.keys()) > 0:
+            print('  Options:')
+            cli.dict_print(options, indent=2)
         if long:
             print('  config:')
             [print('    ' + cli.message(l)) for l in mcu.render_config().split('\n') if not l.startswith('#')]

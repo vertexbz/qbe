@@ -40,6 +40,9 @@ class Command:
     def piped(self, args: list[str], **kw) -> subprocess.CompletedProcess:
         return self.run(args, **kw, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+    def attached(self, args: list[str], **kw) -> subprocess.CompletedProcess:
+        return self.run(args, **kw, stderr=subprocess.PIPE)
+
     def noerr(self, args: list[str], **kw) -> subprocess.CompletedProcess:
         return self.run(args, **kw, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
 
