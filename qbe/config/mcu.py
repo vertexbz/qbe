@@ -53,7 +53,7 @@ class BaseMCU:
         if os.path.getmtime(self.fw_path) < os.path.getmtime(klipper_head):
             return MCUFwStatus.OUTDATED
 
-        return MCUFwStatus.UP_TO_DATE
+        return MCUFwStatus.BUILT
 
     def render_config(self) -> str:
         preset_path = os.path.join('firmware-presets', self.preset + '.config')
