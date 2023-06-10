@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import pathlib
 import time
+import os
 from typing import Union
 
 import qbe.cli as cli
@@ -43,6 +44,8 @@ def can_update(config: Config, name: Union[str, None], all: bool):
         sock = canboot.CanSocket(loop)
     except:
         raise cli.Error('failed acquiring can interface')
+
+    os.makedirs(config.paths.firmwares, exist_ok=True)
 
     for mcu in mcus:
         if mcu.fw_status == MCUFwStatus.UP_TO_DATE:
