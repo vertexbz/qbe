@@ -36,6 +36,10 @@
             "name": {
               "title": "custom name",
               "type": "string"
+            },
+            "main": {
+              "title": "whether is main [mcu]",
+              "type": "boolean"
             }
           }
         ],

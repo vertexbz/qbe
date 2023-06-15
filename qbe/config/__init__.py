@@ -19,6 +19,7 @@ class Config:
     def __init__(self, **kw) -> None:
         self._user = kw.pop('user', getpass.getuser())
         self._paths = paths = ConfigPaths(**kw.pop('paths', {}))
+        self._moonraker_api = kw.pop('moonraker-api', None)
         self._requires = [build_dependency(dep, paths) for dep in kw.pop('requires', [])]
         self._mcus = [build_mcu(mcu, paths) for mcu in kw.pop('mcus', [])]
 
@@ -40,6 +41,10 @@ class Config:
     @property
     def requires(self):
         return self._requires
+
+    @property
+    def moonraker_api(self):
+        return self._moonraker_api or 'http://127.0.0.1:7125/'
 
     @property
     def mcus(self):
