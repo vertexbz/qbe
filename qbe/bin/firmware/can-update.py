@@ -12,6 +12,7 @@ from qbe.config.mcu import CanMCU
 from qbe.config.mcu import MCUFwStatus
 from qbe.support import services
 from qbe.support.canboot import create_socket, hijack_output, restore_output
+from qbe.support.moonraker_api import MoonrakerAPI
 from .build import build_firmware
 
 

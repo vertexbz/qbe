@@ -8,3 +8,4 @@ provides:
     - [ extras/ercf.py, ercf.py ]
     - [ extras/ercf_servo.py, ercf_servo.py ]
     - [ extras/ercf_encoder.py, ercf_encoder.py ]
+    - [ extras/manual_extruder_stepper.py, manual_extruder_stepper.py ]
