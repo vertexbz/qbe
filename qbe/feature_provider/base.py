@@ -51,12 +51,15 @@ class BaseProvider(Generic[BP_C]):
     def _src_path(self, file: Union[PkgTag, str]):
         return os.path.join(self._base_path(file), str(file))
 
-    def _resolve_target_dir(self, target: Union[str, TargetPath], subpath: str):
+    def _resolve_target_dir(self, target: Union[str, TargetPath], subpath: Union[str, LinkTag]):
         if isinstance(target, str):
             return target
 
         if isinstance(target, TargetPath):
-            return target.link if isinstance(subpath, LinkTag) else target.main
+            if isinstance(subpath, LinkTag):
+                return target.link
+
+            return target.main
 
         raise ValueError('Invalid target provided')
 

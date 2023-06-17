@@ -30,7 +30,7 @@ class MoonrakerConfigProvider(OperationMixin):
         for strategy_name, strategy_cls in AVAILABLE_STRATEGIES.items():
             target = TargetPath(
                 self.config.paths.moonraker.config_links if strategy_name == 'link' else self.config.paths.moonraker.configs,
-                link=self.config.paths.moonraker.configs,
+                link=self.config.paths.moonraker.config_links,
                 default=self.config.paths.moonraker.config
             )
 

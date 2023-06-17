@@ -30,7 +30,7 @@ class KlipperScreenConfigProvider(OperationMixin):
         for strategy_name, strategy_cls in AVAILABLE_STRATEGIES.items():
             target = TargetPath(
                 self.config.paths.klipper_screen.config_links if strategy_name == 'link' else self.config.paths.klipper_screen.configs,
-                link=self.config.paths.klipper_screen.configs,
+                link=self.config.paths.klipper_screen.config_links,
                 default=self.config.paths.klipper_screen.config
             )
 

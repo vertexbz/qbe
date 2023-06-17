@@ -29,7 +29,7 @@ class KlipperConfigProvider(OperationMixin):
         for strategy_name, strategy_cls in AVAILABLE_STRATEGIES.items():
             target = TargetPath(
                 self.config.paths.klipper.config_links if strategy_name == 'link' else self.config.paths.klipper.configs,
-                link=self.config.paths.klipper.configs,
+                link=self.config.paths.klipper.config_links,
                 default=self.config.paths.klipper.config
             )
 
