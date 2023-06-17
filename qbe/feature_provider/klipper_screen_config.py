@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 import qbe.cli as cli
 from qbe.utils.obj import qrepr
 from qbe.handler.service_reload import ServiceReload
+from .base import TargetPath
 from .mixin.operation import AVAILABLE_STRATEGIES, OperationMixin, OperationConfigMixin
 from . import feature_provider
 
@@ -27,13 +28,14 @@ class KlipperScreenConfigProvider(OperationMixin):
 
     def process(self, config: KlipperScreenConfigProviderConfig, line: cli.Line, section: Section) -> None:
         for strategy_name, strategy_cls in AVAILABLE_STRATEGIES.items():
-            target = self.config.paths.klipper_screen.configs
-            if strategy_name == 'link':
-                target = self.config.paths.klipper_screen.config_links
+            target = TargetPath(
+                self.config.paths.klipper_screen.config_links if strategy_name == 'link' else self.config.paths.klipper_screen.configs,
+                link=self.config.paths.klipper_screen.configs,
+                default=self.config.paths.klipper_screen.config
+            )
 
             if strategy_name in config:
                 strategy = strategy_cls(self)
                 ops = config[strategy_name]
-                if self.process_operation(strategy, ops, target, line, section,
-                                          default=self.config.paths.klipper_screen.config):
+                if self.process_operation(strategy, ops, target, line, section):
                     section.notify(ServiceReload('KlipperScreen.service', restart=True))

@@ -5,7 +5,7 @@ import pkgutil
 from typing import Type, TYPE_CHECKING, Union
 from .base import BaseStrategy, Skipped, StrategyException
 import qbe.cli as cli
-from ...base import ConfigOperation, BaseProvider
+from ...base import ConfigOperation, BaseProvider, TargetPath
 
 if TYPE_CHECKING:
     from qbe.package import Section
@@ -59,10 +59,9 @@ class OperationMixin(BaseProvider):
         self,
         strategy: BaseStrategy,
         operations: list[ConfigOperation],
-        target: str,
+        in_target: Union[str, TargetPath],
         line: cli.Line,
-        section: Section,
-        default: str = None
+        section: Section
     ) -> bool:
         changed = False
         if len(operations) > 0:
@@ -73,12 +72,14 @@ class OperationMixin(BaseProvider):
                 if not operation.available(self.dependency.options):
                     continue
 
-                if operation.target is True and default is None:
+                target = self._resolve_target_dir(in_target, operation.target)
+
+                if operation.target is True and in_target.default is None:
                     raise StrategyException('No default config available')
 
                 if operation.target is True:
-                    readable_target = os.path.join(os.path.basename(os.path.dirname(default)),
-                                                   os.path.basename(default))
+                    readable_target = os.path.join(os.path.basename(os.path.dirname(in_target.default)),
+                                                   os.path.basename(in_target.default))
                 else:
                     readable_target = os.path.join(os.path.basename(target), str(operation.target))
 
@@ -90,7 +91,7 @@ class OperationMixin(BaseProvider):
 
                 source = self._src_path(operation.source)
                 if operation.target is True:
-                    destination = default
+                    destination = in_target.default
                 else:
                     destination = os.path.join(target, str(operation.target))
 

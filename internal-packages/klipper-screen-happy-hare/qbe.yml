@@ -20,6 +20,9 @@ provides:
         target: screen.conf
         unless:
           user_config: false
+  moonraker-config:
+    template:
+      - [ update.conf, !LINK moonraker.klipper-screen.conf ]
 triggers:
   installed:
     - shell: !PKG trigger.sh
