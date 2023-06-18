@@ -28,9 +28,8 @@ __path__ = pkgutil.extend_path(__path__, __name__)
 for imp, module, ispackage in pkgutil.iter_modules(path=__path__, prefix=__name__ + '.'):
     if not module.endswith('.base') and not module.endswith('.local'):
         __import__(module)
-for imp, module, ispackage in pkgutil.iter_modules(path=__path__, prefix=__name__ + '.'):
-    if module.endswith('.local'):
-        __import__(module)
+
+__import__(__name__ + '.local')
 
 
 def build_dependency(config: dict, paths: ConfigPaths) -> Type[Dependency]:
