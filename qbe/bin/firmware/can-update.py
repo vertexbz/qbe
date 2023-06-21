@@ -12,12 +12,7 @@ from qbe.config.mcu import CanMCU
 from qbe.config.mcu import MCUFwStatus
 from qbe.support import services
 from qbe.support.canboot import create_socket, hijack_output, restore_output
-from qbe.support.moonraker_api import MoonrakerAPI
 from .build import build_firmware
-
-
-def hijack_line(msg: str) -> None:
-    print('H: ' + msg)
 
 
 @cli.command(short_help='Updates devices via can boot')
@@ -69,15 +64,13 @@ def can_update(config: Config, name: Union[str, None], all: bool):
         line.print(f'Flashing {cli.bold(mcu.name)} firmware...')
 
         try:
-            hijack_output(hijack_line)
             loop.run_until_complete(sock.run(mcu.interface, int(mcu.can_id, 16), pathlib.Path(mcu.fw_path), False))
         except Exception as e:
             line.finish()
             print(cli.error('CAN flash error: ') + cli.error(str(e)))
             continue
-        finally:
-            restore_output()
 
         line.print(cli.updated('MCU ') + cli.updated(cli.bold(mcu.name)) + cli.updated(' updated!'))
+        line.finish()
 
     sock.close()
