@@ -45,6 +45,7 @@ If your setup requires system changes it may be worth to reboot after run
 
 # TODO
 
+* [ ] Global options
 * [ ] Moonraker db interactions
 * [ ] Moonraker plugin
 * [ ] git/local-repo providers
