@@ -32,7 +32,7 @@ class BaseMCU:
         self.definition = yaml_to_obj(os.path.join(paths.qbedir, 'mcus', preset, 'mcu.yml'), MCUDefinition)
         self.options = config.pop('options', {})
 
-        self.mode = config.pop('mode', preset)
+        self.mode = config.pop('mode', 'usb')
 
         self._target_dir = paths.firmwares
 
