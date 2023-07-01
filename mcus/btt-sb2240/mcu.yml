@@ -1,0 +1,6 @@
+name: BigTreeTech EBB SB2240/2209
+mode:
+  can: can.config
+bootloader:
+  canboot: canboot.config
+flash_mode: dfu

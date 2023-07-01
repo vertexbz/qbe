@@ -1,0 +1,6 @@
+name: Mellow Fly ERCF Can
+mode:
+  can: can.config
+bootloader:
+  canboot: canboot.config
+flash_mode: rp2040
