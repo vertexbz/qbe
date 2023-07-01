@@ -1,0 +1,20 @@
+name: moonraker-telegram-bot
+author: nelf@github.com
+license: GNU GPL v3.0
+data-source:
+  git: https://github.com/nlef/moonraker-telegram-bot.git
+provides:
+  system-packages:
+    apt: [ python3-virtualenv, python3-dev, python3-cryptography, python3-gevent, python3-opencv, x264, libx264-dev, libwebp-dev ]
+  pip-app:
+    services:
+      - !PKG moonraker-telegram-bot.service
+    pip-requirements: scripts/requirements.txt
+  moonraker-config:
+    template:
+      - [ !PKG update.conf, !LINK moonraker.moonraker-telegram-bot.conf ]
+  klipper-config:
+    link:
+      - [ !PKG klipper.cfg, moonraker-telegram-bot.cfg ]
+    template:
+      - [ !PKG config.conf, moonraker-telegram-bot.conf ]

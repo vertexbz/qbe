@@ -1,0 +1,15 @@
+#Systemd service file for Moonraker Telegram Bot
+[Unit]
+Description=Starts Moonraker Telegram Bot on startup
+After=network-online.target moonraker.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+User={{user}}
+WorkingDirectory={{dirs.pkg}}
+ExecStart={{dirs.venv}}/bin/python {{dirs.pkg}}/bot/main.py -c {{paths.klipper.configs}}/moonraker-telegram-bot.conf -l {{paths.moonraker.logs}}/telegram-bot.log
+Restart=always
+RestartSec=5
