@@ -13,6 +13,8 @@ def _fw_status_to_str(status: MCUFwStatus) -> str:
         return cli.success('ready to update')
     if status == MCUFwStatus.UP_TO_DATE:
         return cli.updated('up to date')
+    if status == MCUFwStatus.NOT_APPLY:
+        return cli.dim('not apply')
 
     raise ValueError('unknown status')
 

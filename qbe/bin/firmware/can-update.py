@@ -44,6 +44,9 @@ def can_update(config: Config, name: Union[str, None], all: bool):
     os.makedirs(config.paths.firmwares, exist_ok=True)
 
     for mcu in mcus:
+        if mcu.fw_status == MCUFwStatus.NOT_APPLY:
+            print(cli.dim(f'skipping {cli.bold(mcu.name)}{cli.CODE_DIM} - not apply'))
+            continue
         if mcu.fw_status == MCUFwStatus.UP_TO_DATE:
             print(cli.dim(f'skipping {cli.bold(mcu.name)}{cli.CODE_DIM} - up to date'))
             continue

@@ -17,19 +17,30 @@ class MCUFwStatus(Enum):
     OUTDATED = 1
     BUILT = 2
     UP_TO_DATE = 3
+    NOT_APPLY = -1
+
+
+class MCUDefinition:
+    def __init__(self, **kw):
+        pass
 
 
 class BaseMCU:
     def __init__(self, preset: str, config: dict, paths: ConfigPaths):
         self.preset = preset
         self.name = config.pop('name', preset)
+        self.definition = yaml_to_obj(os.path.join(paths.qbedir, 'mcus', preset, 'mcu.yml'), MCUDefinition)
         self.options = config.pop('options', {})
+
+        self.mode = config.pop('mode', preset)
+
         self._target_dir = paths.firmwares
 
     @property
     def info(self):
         return {
             'preset': self.preset,
+            'mode': self.mode,
             'options': self.options
         }
 

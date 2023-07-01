@@ -58,4 +58,11 @@ class Loader(yaml.loader.Reader, yaml.loader.Scanner, yaml.loader.Parser, yaml.l
 Loader.add_constructor(PkgTag.yaml_tag, PkgTag.from_yaml)
 Loader.add_constructor(LinkTag.yaml_tag, LinkTag.from_yaml)
 
-__all__ = ['Loader', 'PkgTag', 'LinkTag']
+
+def yaml_to_obj(path: str, cls=dict):
+    with open(path) as stream:
+        data = yaml.safe_load(stream)
+        return cls(**data)
+
+
+__all__ = ['Loader', 'PkgTag', 'LinkTag', 'yaml_to_obj']

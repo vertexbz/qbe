@@ -37,7 +37,7 @@ def success(text: str) -> str:
 
 
 def warning(text: str) -> str:
-    return click.style(text, fg='orange', reset=True)
+    return click.style(text, fg='yellow', reset=True)
 
 
 def message(text: str) -> str:

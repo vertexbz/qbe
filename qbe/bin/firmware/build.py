@@ -49,6 +49,9 @@ def build(config: Config, name: Union[str, None], verbose: bool):
     os.makedirs(config.paths.firmwares, exist_ok=True)
 
     for mcu in mcus:
+        if mcu.fw_status == MCUFwStatus.NOT_APPLY:
+            print(cli.dim(f'skipping {cli.bold(mcu.name)}{cli.CODE_DIM} - not apply'))
+            continue
         if mcu.fw_status not in (MCUFwStatus.ABSENT, MCUFwStatus.OUTDATED):
             print(cli.dim(f'skipping {cli.bold(mcu.fw_file)}{cli.CODE_DIM} - up to date'))
             continue
