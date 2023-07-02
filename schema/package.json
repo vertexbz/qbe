@@ -99,6 +99,37 @@
             }
           }
         },
+        "user-config": {
+          "title": "User configuration",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "link": {
+              "title": "Link",
+              "description": "Links file/dir to home directory",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/BaseOperationArgs"
+              }
+            },
+            "blueprint": {
+              "title": "Blueprint",
+              "description": "Copies template file/dir to home directory if not exists",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/BaseOperationArgs"
+              }
+            },
+            "template": {
+              "title": "Template",
+              "description": "Renders jinja template file to home directory if not exists",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/BaseOperationArgs"
+              }
+            }
+          }
+        },
         "klipper-screen-config": {
           "title": "Klipper-screen configuration",
           "type": "object",
