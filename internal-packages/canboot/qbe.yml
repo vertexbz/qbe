@@ -4,7 +4,9 @@ license: GNU GPL v3.0
 homepage: https://github.com/Arksine/CanBoot
 data-source:
   git: https://github.com/Arksine/CanBoot
-provides: {}
+provides:
+  system-packages:
+    apt: [ dfu-util ]
 triggers:
   installed:
     - shell: !PKG link.sh
