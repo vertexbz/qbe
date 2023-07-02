@@ -1,5 +1,5 @@
 name: moonraker-telegram-bot
-author: nelf@github.com
+author: nlef@github.com
 license: GNU GPL v3.0
 data-source:
   git: https://github.com/nlef/moonraker-telegram-bot.git
