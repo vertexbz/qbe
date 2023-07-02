@@ -10,6 +10,7 @@ provides:
     services:
       - !PKG moonraker-telegram-bot.service
     pip-requirements: scripts/requirements.txt
+    pip-packages: [ opencv-python~=3.4.17.63 ]
   moonraker-config:
     template:
       - [ !PKG update.conf, !LINK moonraker.moonraker-telegram-bot.conf ]
