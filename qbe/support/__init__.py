@@ -3,6 +3,7 @@ import tempfile
 from typing import Union
 from .service import find, KlipperService, MoonrakerService, KlipperScreenService, SystemdService
 from .runner import Pip, Command, Sudo, Apt, Shell, Systemctl
+from ..utils.file import writefile
 
 
 class filler:
@@ -71,8 +72,7 @@ def sudo_cp(source: str, target: str, recursive: bool = False):
 
 def sudo_write(data: str, target: str):
     tmp = tempfile.NamedTemporaryFile()
-    with open(tmp.name, 'w', encoding='utf-8') as stream:
-        stream.write(data)
+    writefile(tmp.name, data)
 
     os.chmod(tmp.name, 0o644)
     success = sudo_cp(tmp.name, target)

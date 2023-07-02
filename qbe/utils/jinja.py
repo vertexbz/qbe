@@ -21,8 +21,12 @@ j2fsEnv = _setup_env(
 )
 
 
-def render(template: str, context: dict = {}):
-    return j2env.from_string(template).render(context)
+def template(template_string: str) -> jinja2.Template:
+    return j2env.from_string(template_string)
+
+
+def render(template_string: str, context: dict = {}) -> str:
+    return template(template_string).render(context)
 
 
 def render_file(template_path: str, context: dict = {}) -> str:

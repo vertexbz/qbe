@@ -6,7 +6,6 @@ from typing import Union
 import qbe.cli as cli
 from qbe.config import Config
 from qbe.firmware import MCUFwStatus
-from qbe.support import services
 
 
 @cli.command(short_help='Builds new version of firmware for every mcu')
@@ -14,30 +13,31 @@ from qbe.support import services
 @cli.option('--verbose', '-v', default=False, is_flag=True)
 @cli.pass_config
 def build(config: Config, name: Union[str, None], verbose: bool):
-    if services.klipper is None:
-        raise cli.Error('klipper not found')
+    canboot_dir = os.path.join(config.paths.packages, 'canboot')
+    if not os.path.isdir(canboot_dir):
+        raise cli.Error('canboot not found')
 
     mcus = config.mcus[:]
     if name is not None:
-        mcus = list(filter(lambda m: m.name.lower() == name.lower(), mcus))
+        mcus = list(filter(lambda m: m.name.lower() == name.lower() and m.bootloader is not None, mcus))
         if len(mcus) == 0:
             raise cli.Error(f'no MCUs matching name {name}')
 
     os.makedirs(config.paths.firmwares, exist_ok=True)
 
     for mcu in mcus:
-        if mcu.firmware.status == MCUFwStatus.NOT_APPLY:
+        if mcu.bootloader is None or mcu.bootloader.status == MCUFwStatus.NOT_APPLY:
             print(cli.dim(f'skipping {cli.bold(mcu.name)}{cli.CODE_DIM} - not apply'))
             continue
-        if mcu.firmware.status not in (MCUFwStatus.ABSENT, MCUFwStatus.OUTDATED):
-            print(cli.dim(f'skipping {cli.bold(mcu.firmware.filename)}{cli.CODE_DIM} - up to date'))
+        if mcu.bootloader.status not in (MCUFwStatus.ABSENT, MCUFwStatus.OUTDATED):
+            print(cli.dim(f'skipping {cli.bold(mcu.bootloader.filename)}{cli.CODE_DIM} - up to date'))
             continue
 
-        print(f'building {cli.bold(mcu.firmware.filename)}... ', end='', flush=True)
+        print(f'building {cli.bold(mcu.bootloader.filename)}... ', end='', flush=True)
         if verbose:
             print()
 
-        mcu.firmware.build(verbose)
+        mcu.bootloader.build(verbose)
 
         if verbose:
             print(cli.success('Done!'))

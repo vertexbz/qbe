@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-import sys
+from qbe.utils.path import qbeenv, qbedir
 from qbe.utils.obj import qrepr, qdict
 from .klipper import KlipperPaths
 from .klipper_screen import KlipperScreenPaths
@@ -42,14 +42,11 @@ class ConfigPaths:
 
     @property
     def qbedir(self):
-        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        return qbedir
 
     @property
     def qbeenv(self):
-        if 'VIRTUAL_ENV' in os.environ:
-            return os.environ['VIRTUAL_ENV']
-
-        return os.path.dirname(os.path.dirname(sys.executable))
+        return qbeenv
 
     @property
     def packages(self):

@@ -1,5 +1,7 @@
 import os
 from qbe.utils import jinja
+from qbe.utils.file import readfile
+from qbe.utils.file import writefile
 from .base import BaseStrategy, Skipped
 from . import operation
 
@@ -10,13 +12,11 @@ class TemplateConfigCommand(BaseStrategy):
         if os.path.exists(target):
             raise Skipped('%(target)s already exists')
 
-        content = open(source, 'r', encoding='utf-8').read()
+        content = readfile(source)
         content = jinja.render(content, self.provider._context())
 
         os.makedirs(os.path.dirname(target), exist_ok=True)
-        
-        output = open(target, "w", encoding='utf-8')
-        output.write(content)
-        output.close()
+
+        writefile(target, content)
 
         return 'created %(target)s from template'

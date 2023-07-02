@@ -9,6 +9,8 @@ from .mixin.operation import BaseStrategy, OperationMixin, OperationConfigMixin,
 from . import feature_provider
 from typing import TYPE_CHECKING
 
+from ..utils.file import readfile
+
 if TYPE_CHECKING:
     from qbe.package import Section
 
@@ -42,7 +44,7 @@ class BlueprintOperation(BaseStrategy):
         if os.path.exists(target):
             raise Skipped('%(target)s already exists')
 
-        contents = open(source, 'r', encoding='utf-8').read()
+        contents = readfile(source)
         contents = jinja.render(contents, self.provider._context())
         sudo_mkdir(os.path.dirname(target), recursive=True)
         sudo_write(contents, target)

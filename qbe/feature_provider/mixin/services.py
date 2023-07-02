@@ -7,6 +7,7 @@ from qbe.support import sudo_write
 from qbe.utils import jinja
 from qbe.handler.service_reload import ServiceReload
 from ..base import ConfigOperation, BaseProvider
+from ...utils.file import readfile
 
 if TYPE_CHECKING:
     from qbe.package import Section
@@ -26,7 +27,7 @@ class ServicesMixin(BaseProvider):
 
             for service in config.services:
                 source = self._src_path(service.source)
-                content = open(source, 'r', encoding='utf-8').read()
+                content = readfile(source)
                 content = jinja.render(content, self._context())
                 target = os.path.join('/etc/systemd/system', service.target)
 
@@ -34,7 +35,7 @@ class ServicesMixin(BaseProvider):
                     sudo_write(content, target)
                     section.installed(f'service: {service.target} installed')
                     section.notify(ServiceReload(os.path.join(service.target)))
-                elif open(target, 'r', encoding='utf-8').read() != content:
+                elif readfile(target) != content:
                     sudo_write(content, target)
                     section.updated(f'service: {service.target} updated')
                     section.notify(ServiceReload(os.path.join(service.target), restart=True, daemon_reload=True))
