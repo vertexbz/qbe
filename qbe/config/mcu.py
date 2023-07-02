@@ -7,6 +7,7 @@ from typing import Union, TYPE_CHECKING
 
 from qbe.support import services
 from qbe.utils import jinja
+from qbe.utils.yaml import yaml_to_obj
 
 if TYPE_CHECKING:
     from qbe.config import ConfigPaths
