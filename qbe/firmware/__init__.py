@@ -1,13 +1,16 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 import os.path
 import shutil
 from enum import Enum
 import hashlib
-from typing import Union
 
 from qbe.support import Command
-from qbe.config.mcu.definition import MCUConfigTemplate
 from qbe.utils.file import writefile
+from .updater import flash
+
+if TYPE_CHECKING:
+    from qbe.config.mcu.definition import MCUConfigTemplate
 
 
 class MCUFwStatus(Enum):
@@ -16,18 +19,6 @@ class MCUFwStatus(Enum):
     BUILT = 2
     UP_TO_DATE = 3
     NOT_APPLY = -1
-
-
-def fw_filename(basename: str, options: Union[None, dict] = None, suffix: Union[None, str] = None):
-    hash_object = hashlib.sha256(str(options).encode('utf-8'))
-    short_hash = hash_object.hexdigest()[:8]
-
-    name = basename
-
-    if suffix is not None:
-        name = name + '-' + suffix
-
-    return name + '-' + short_hash + '.bin'
 
 
 class MCUFirmware:
@@ -46,7 +37,15 @@ class MCUFirmware:
 
     @property
     def filename(self):
-        return fw_filename(self.name, self.options, self.type)
+        hash_object = hashlib.sha256(str(self.options).encode('utf-8'))
+        short_hash = hash_object.hexdigest()[:8]
+
+        name = self.name
+
+        if self.type is not None:
+            name = name + '-' + self.type
+
+        return name + '-' + short_hash + '.bin'
 
     @property
     def path(self):
@@ -88,3 +87,17 @@ class MCUFirmware:
 
         if os.path.exists(target_config):
             os.unlink(target_config)
+
+    def with_options(self, **kw):
+        suffix = self.type
+        if kw.get('deployer', False) and not self.options.get('deployer', False):
+            suffix = suffix + '-deployer'
+
+        return MCUFirmware(
+            self.target_dir, self.name, suffix,
+            self.config, {**self.options, **kw},
+            self.source_dir
+        )
+
+
+__all__ = ['flash', 'MCUFwStatus', 'MCUFirmware']

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-import pathlib
 import time
 import os
 from typing import Union
@@ -10,8 +8,8 @@ import qbe.cli as cli
 from qbe.config import Config
 from qbe.config.mcu import CanMCU
 from qbe.firmware import MCUFwStatus
+from qbe.firmware import flash
 from qbe.support import services
-from qbe.support.canboot import create_socket
 
 
 @cli.command(short_help='Updates MCU(s)')
@@ -31,14 +29,6 @@ def update(config: Config, name: Union[str, None], all: bool):
         mcus = list(filter(lambda m: m.name.lower() == name.lower(), mcus))
         if len(mcus) == 0:
             raise cli.Error(f'no MCUs matching name {name}')
-
-    loop = asyncio.get_event_loop()
-    try:
-        sock = create_socket(loop)
-    except ModuleNotFoundError as e:
-        raise cli.Error(str(e))
-    except:
-        raise cli.Error('failed acquiring can interface')
 
     os.makedirs(config.paths.firmwares, exist_ok=True)
 
@@ -66,14 +56,14 @@ def update(config: Config, name: Union[str, None], all: bool):
         line.print(f'Flashing {cli.bold(mcu.name)} firmware...')
 
         try:
-            loop.run_until_complete(
-                sock.run(mcu.interface, int(mcu.can_id, 16), pathlib.Path(mcu.firmware.path), False))
+            if mcu.config.bootloader_type is not None:
+                flash(config, mcu, mcu.config.bootloader_type, mcu.firmware.path)
+            else:
+                flash(config, mcu, mcu.flash_mode, mcu.firmware.path)  # TODO let the user choose
         except Exception as e:
             line.finish()
-            print(cli.error('CAN flash error: ') + cli.error(str(e)))
+            cli.error_with_trace(e, prefix='Flash error')
             continue
 
         line.print(cli.updated('MCU ') + cli.updated(cli.bold(mcu.name)) + cli.updated(' updated!'))
         line.finish()
-
-    sock.close()

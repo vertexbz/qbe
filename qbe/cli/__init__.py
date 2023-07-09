@@ -1,4 +1,5 @@
 import os
+import traceback
 import typing as t
 from functools import update_wrapper
 import click
@@ -58,6 +59,14 @@ def updated(text: str) -> str:
 
 def error(text: str) -> str:
     return click.style(text, fg='red', reset=True)
+
+
+def error_with_trace(err: Exception, prefix: t.Union[None, str] = None):
+    msg = "".join(traceback.format_exception(type(err), err, err.__traceback__))
+    if prefix is not None:
+        print(error(prefix + '! ') + error(msg))
+    else:
+        print(error(msg))
 
 
 if os.name == 'nt':

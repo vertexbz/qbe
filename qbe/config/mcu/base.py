@@ -17,23 +17,27 @@ class BaseMCU:
         self.name = config.pop('name', preset)
         self.definition = MCUDefinition.from_preset_name(preset)
         self.options = config.pop('options', {})
-
         self.mode = config.pop('mode', self.definition.default_mode)
+        self.flash_mode = config.pop('flash_mode', self.definition.flash[0])
 
         self.firmware = MCUFirmware(
             paths.firmwares, preset, self.mode,
-            self.definition.modes[self.mode].firmware, self.options,
+            self.config.firmware, self.options,
             services.klipper.srcdir if services.klipper is not None else None
         )
 
         self.bootloader = None
-        if self.definition.modes[self.mode].bootloader is not None:
-            package_path = os.path.join(paths.packages, self.definition.modes[self.mode].bootloader_type)
+        if self.config.bootloader is not None:
+            package_path = os.path.join(paths.packages, self.config.bootloader_type)
             self.bootloader = MCUFirmware(
-                paths.firmwares, preset, self.mode + '-' + self.definition.modes[self.mode].bootloader_type,
-                self.definition.modes[self.mode].bootloader, self.options,
+                paths.firmwares, preset, self.mode + '-' + self.config.bootloader_type,
+                self.config.bootloader, self.options,
                 package_path if os.path.isdir(package_path) else None
             )
+
+    @property
+    def config(self):
+        return self.definition.modes[self.mode]
 
     @property
     def info(self):

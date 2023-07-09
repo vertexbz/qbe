@@ -106,7 +106,7 @@ def update(config: Config):
                 handler(notification).handle(notification)
                 print(cli.updated('ok'))
             except Exception as e:
-                print(cli.error(str(e).strip()))
+                cli.error_with_trace(e)
 
     if len(list(chain.from_iterable(messages.values()))):
         print()
