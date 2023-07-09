@@ -29,3 +29,6 @@ triggers:
         
         To get chat id type something to bo and run:
         curl https://api.telegram.org/bot<TOKEN>/getUpdates
+        
+        Advised console filter:
+        ^(?:tgnotify|tgnotify_photo|tgnotify_status|tgalarm|tgalarm_photo|tgcustom_keyboard)\s
