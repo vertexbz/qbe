@@ -46,5 +46,9 @@ triggers:
         [telegram]
         token: ...
         chat: ...
+        
+        
+        To get chat id type something to bo and run:
+        curl https://api.telegram.org/bot<TOKEN>/getUpdates
       only:
         notifier-telegram: true

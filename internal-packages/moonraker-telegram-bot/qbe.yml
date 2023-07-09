@@ -22,3 +22,10 @@ provides:
   user-config:
     blueprint:
       - [ !PKG secrets.conf, moonraker-telegram-bot.secrets ]
+triggers:
+  installed:
+    - message: |
+        Secrets path: ~/moonraker-telegram-bot.secrets
+        
+        To get chat id type something to bo and run:
+        curl https://api.telegram.org/bot<TOKEN>/getUpdates
