@@ -3,6 +3,7 @@ author: moggieuk@github.com
 license: GNU GPL v3.0
 data-source:
   git: https://github.com/moggieuk/Happy-Hare.git
+  branch: main
 provides:
   klipper-extension:
     - [ extras/mmu.py, mmu.py ]
