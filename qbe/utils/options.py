@@ -11,11 +11,9 @@ class OptionsAwareOperation:
         if len(self.only) == 0 and len(self.unless) == 0:
             return True
 
-        result = len(self.only) == 0
+        result = True
         for key, state in self.only.items():
-            if options.get(key, None) == state:
-                result = True
-                break
+            result = result and options.get(key, None) == state
 
         for key, state in self.unless.items():
             if options.get(key, None) == state:
