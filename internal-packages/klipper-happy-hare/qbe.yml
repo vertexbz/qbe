@@ -2,10 +2,12 @@ name: klipper-happy-hare
 author: moggieuk@github.com
 license: GNU GPL v3.0
 data-source:
-  git: https://github.com/moggieuk/ERCF-Software-V3.git
+  git: https://github.com/moggieuk/Happy-Hare.git
 provides:
   klipper-extension:
-    - [ extras/ercf.py, ercf.py ]
-    - [ extras/ercf_servo.py, ercf_servo.py ]
-    - [ extras/ercf_encoder.py, ercf_encoder.py ]
+    - [ extras/mmu.py, mmu.py ]
+    - [ extras/mmu_config_setup.py, mmu_config_setup.py ]
+    - [ extras/mmu_servo.py, mmu_servo.py ]
+    - [ extras/mmu_encoder.py, mmu_encoder.py ]
     - [ extras/manual_extruder_stepper.py, manual_extruder_stepper.py ]
+    - [ extras/manual_mh_stepper.py, manual_mh_stepper.py ]
