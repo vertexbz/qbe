@@ -9,6 +9,9 @@ provides:
       - [ !PKG mainsail, /etc/nginx/sites-available/mainsail ]
     link:
       - [ /etc/nginx/sites-available/mainsail, /etc/nginx/sites-enabled/mainsail ]
+  moonraker-config:
+    template:
+      - [ !PKG update.conf, !LINK moonraker.mainsail.conf ]
 triggers:
   installed:
     - service-reload: nginx

@@ -12,3 +12,6 @@ provides:
     - [ extras/mmu_encoder.py, mmu_encoder.py ]
     - [ extras/manual_extruder_stepper.py, manual_extruder_stepper.py ]
     - [ extras/manual_mh_stepper.py, manual_mh_stepper.py ]
+  moonraker-config:
+    template:
+      - [ !PKG update.conf, !LINK moonraker.klipper-happy-hare.conf ]
