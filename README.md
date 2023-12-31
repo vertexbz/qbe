@@ -6,7 +6,7 @@
 
 ```shell
 sudo apt update
-sudo apt install -y git python3-dev python3-virtualenv libffi-dev libxml2-dev libxslt-dev rustc libssl-dev gcc musl-dev
+sudo apt install -y git python3-dev python3-virtualenv libffi-dev libxml2-dev libxslt-dev libsystemd-dev libssl-dev gcc rustc musl-dev
 
 sudo groupadd qbe-manager
 sudo usermod -a -G qbe-manager `whoami`

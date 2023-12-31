@@ -7,11 +7,11 @@ data-source:
 provides:
   klipper-extension:
     - [ extras/mmu.py, mmu.py ]
-    - [ extras/mmu_config_setup.py, mmu_config_setup.py ]
     - [ extras/mmu_servo.py, mmu_servo.py ]
     - [ extras/mmu_encoder.py, mmu_encoder.py ]
-    - [ extras/manual_extruder_stepper.py, manual_extruder_stepper.py ]
-    - [ extras/manual_mh_stepper.py, manual_mh_stepper.py ]
+    - [ extras/mmu_toolhead.py, mmu_toolhead.py ]
+    - [ extras/mmu_sensors.py, mmu_sensors.py ]
+    - [ extras/mmu_led_effect.py, mmu_led_effect.py ]
   moonraker-extension:
     - [ components/mmu_server.py, mmu_server.py ]
   moonraker-config:
