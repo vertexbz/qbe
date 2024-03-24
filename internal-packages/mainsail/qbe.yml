@@ -7,6 +7,7 @@ provides:
   system-config:
     blueprint:
       - [ !PKG mainsail, /etc/nginx/sites-available/mainsail ]
+      - [ !PKG mainsail.conf, /etc/nginx/snippets/mainsail.conf ]
     link:
       - [ /etc/nginx/sites-available/mainsail, /etc/nginx/sites-enabled/mainsail ]
   moonraker-config:
