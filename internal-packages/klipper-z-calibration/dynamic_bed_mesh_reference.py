@@ -16,15 +16,14 @@ class DynamicBedMeshReference:
 
     def get_status(self, *_):
         origin = self.bed_mesh.bmc.zero_ref_pos
-
         return {
             "tuple": origin,
-            "text": 'None' if not origin else str(origin[0]) + "," + str(origin[1])
+            "text": 'None' if not origin else ("%.2f,%.2f" % origin)
         }
 
 
 def center_between(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
-    return (a[0] + b[0])/2, (a[1] + b[1])/2
+    return (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
 
 
 def closest_to(points: list[tuple[float, float]], center: tuple[float, float]) -> tuple[float, float]:
