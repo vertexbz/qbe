@@ -17,7 +17,7 @@ class CanUpdater(BaseUpdater):
         if not hasattr(mcu, 'can_id') or not hasattr(mcu, 'interface'):
             raise ValueError('invalid mcu')
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         try:
             sock = create_socket(loop)
         except ModuleNotFoundError as e:
