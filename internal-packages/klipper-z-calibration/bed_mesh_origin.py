@@ -1,12 +1,14 @@
-from . import bed_mesh
+from .bed_mesh import BedMesh
+from klippy import Printer
 
 
 class BedMeshOrigin:
     def __init__(self, config):
-        self.bed_mesh = config.get_printer().lookup_object('bed_mesh')  # type: bed_mesh.BedMeshCalibrate
+        printer = config.get_printer()  # type: Printer
+        self.bed_mesh = printer.load_object(config, 'bed_mesh')  # type: BedMesh
 
     def get_status(self, *_):
-        origin = self.bed_mesh.origin
+        origin = self.bed_mesh.bmc.origin
         return {
             "tuple": origin,
             "text": origin[0] + "," + origin[1]
