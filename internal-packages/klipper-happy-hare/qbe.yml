@@ -11,6 +11,7 @@ provides:
     - [ extras/mmu_encoder.py, mmu_encoder.py ]
     - [ extras/mmu_toolhead.py, mmu_toolhead.py ]
     - [ extras/mmu_sensors.py, mmu_sensors.py ]
+    - [ extras/mmu_leds.py, mmu_leds.py ]
     - [ extras/mmu_led_effect.py, mmu_led_effect.py ]
   moonraker-extension:
     - [ components/mmu_server.py, mmu_server.py ]
