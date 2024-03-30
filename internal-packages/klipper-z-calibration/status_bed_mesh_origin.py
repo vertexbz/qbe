@@ -3,7 +3,7 @@ class BedMeshOrigin:
         self.printer = config.get_printer()  # type: Printer
 
     def get_status(self, *_):
-        bed_mesh = self.printer.lookup_object(config, 'bed_mesh')  # type: BedMesh
+        bed_mesh = self.printer.lookup_object('bed_mesh')  # type: BedMesh
         origin = bed_mesh.bmc.origin
         if not origin:
             origin = (175, 175)
