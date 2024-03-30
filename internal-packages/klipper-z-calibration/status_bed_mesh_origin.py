@@ -5,11 +5,9 @@ class BedMeshOrigin:
     def get_status(self, *_):
         bed_mesh = self.printer.lookup_object('bed_mesh')  # type: BedMesh
         origin = bed_mesh.bmc.origin
-        if not origin:
-            origin = (175, 175)
         return {
             "tuple": origin,
-            "text": str(origin[0]) + "," + str(origin[1])
+            "text": 'None' if not origin else str(origin[0]) + "," + str(origin[1])
         }
 
 
