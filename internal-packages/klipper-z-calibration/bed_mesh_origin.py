@@ -1,7 +1,3 @@
-from .bed_mesh import BedMesh
-from klippy import Printer
-
-
 class BedMeshOrigin:
     def __init__(self, config):
         printer = config.get_printer()  # type: Printer
