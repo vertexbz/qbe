@@ -32,7 +32,10 @@ class BedMeshOrigin:
         if not origin:
             origin = self.default
 
-        return origin
+        return {
+            "tuple": origin,
+            "text": 'None' if not origin else str(origin[0]) + "," + str(origin[1])
+        }
 
 
 def load_config(config):
