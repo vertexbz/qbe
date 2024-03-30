@@ -9,7 +9,7 @@ class BedMeshOrigin:
             origin = (175, 175)
         return {
             "tuple": origin,
-            "text": origin[0] + "," + origin[1]
+            "text": str(origin[0]) + "," + str(origin[1])
         }
 
 
