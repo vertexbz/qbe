@@ -6,7 +6,7 @@ data-source:
 provides:
   klipper-extension:
     - z_calibration.py
-    - [ !PKG bed_mesh_origin.py, bed_mesh_origin.py ]
+    - [ !PKG status_bed_mesh_origin.py, status_bed_mesh_origin.py ]
   klipper-config:
     link:
       - [ !PKG loader.cfg, z_calibration-and-bed_mesh_origin.loader.cfg ]
