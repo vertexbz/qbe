@@ -15,23 +15,6 @@ paths:
     config: ~/screen.conf
     config-links: ~/autoload-screen
 requires:
-  - internal: rpi-lcd-35b2
-    options:
-      rotation: 270
-  - internal: rpi-uart
-  - internal: rpi-clear-screen
-  - internal: rpi-disable-bt
-  #- internal: rpi-can  # didn't really test this one
-  #  options:
-  #    txqueuelen: 2048
-  #- internal: rpi-camera # didn't really test this one
-  #  options:
-  #    resolution: 1280x720
-  #    fps: 15
-  #    driver: uvc
-  #    device: /dev/video0
-  #    focus: 155
-  - internal: nginx
   - internal: klipper
     options:
       loader: true

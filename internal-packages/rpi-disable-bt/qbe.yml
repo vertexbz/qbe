@@ -1,5 +1,0 @@
-name: rpi-disable-bt
-author: noone@nowhere.com
-license: WTF
-provides:
-  ansible: !PKG playbook.yml

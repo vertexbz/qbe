@@ -9,3 +9,4 @@ __pycache__
 /qbe.yaml
 /qbe.lock
 /qbe/support/_canboot.py
+/.qemu

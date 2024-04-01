@@ -19,7 +19,6 @@ def feature_provider(name):
 
 from .system_packages import *
 from .system_config import *
-from .ansible import *
 from .pip_app import *
 
 __path__ = pkgutil.extend_path(__path__, __name__)
