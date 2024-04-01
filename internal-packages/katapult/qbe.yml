@@ -1,9 +1,9 @@
-name: canboot
+name: katapult
 author: Arksine@github.com
 license: GNU GPL v3.0
-homepage: https://github.com/Arksine/CanBoot
+homepage: https://github.com/Arksine/katapult
 data-source:
-  git: https://github.com/Arksine/CanBoot
+  git: https://github.com/Arksine/katapult
 provides:
   system-packages:
     apt: [ dfu-util ]
