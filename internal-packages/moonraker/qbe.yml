@@ -11,6 +11,10 @@ provides:
     services:
       - !PKG moonraker.service
     pip-requirements: scripts/moonraker-requirements.txt
+  system-config:
+    blueprint:
+      - [ !PKG apiserver.conf, /etc/nginx/server.d/proxy/apiserver.conf ]
+      - [ !PKG upstream-apiserver.conf, /etc/nginx/conf.d/upstream-apiserver.conf ]
   moonraker-config:
     link:
       - source: !PKG notifier/telegram.conf
