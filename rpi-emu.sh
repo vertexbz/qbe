@@ -36,9 +36,9 @@ fi
 exec qemu-system-aarch64 \
     -m 1G \
     -M raspi3b \
+    -cpu cortex-a72 \
     -smp 4 \
     -usb \
-    -device usb-kbd \
     -device 'usb-net,netdev=net0' \
     -netdev 'user,id=net0,hostfwd=tcp::5022-:22,hostfwd=tcp::8080-:80' \
     -drive "file=${IMAGE_FILE},index=0,format=raw" \

@@ -10,7 +10,6 @@ provides:
   pip-app:
     services:
       - !PKG klipper.service
-      - [ !PKG sidekick.service, k5r-sidekick.service ]
     pip-requirements: ./scripts/klippy-requirements.txt
     pip-packages: [ numpy ]
   klipper-config:
