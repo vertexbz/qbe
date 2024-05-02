@@ -4,7 +4,6 @@ from abc import abstractmethod
 from dataclasses import fields
 from functools import cached_property
 import hashlib
-import logging
 import os
 import shutil
 from typing import TYPE_CHECKING, Optional
@@ -167,11 +166,8 @@ class Package(Updatable):
     async def _hash_recipe(self):
         hash_object = hashlib.sha256()
         hash_object.update(dump(encode(self.manifest.data_source), None).strip().encode('utf-8'))
-        logging.warning(f'{self.name}, ds: {hash_object.hexdigest()}')
         hash_object.update(dump(encode(self.manifest.provides), None).strip().encode('utf-8'))
-        logging.warning(f'{self.name}, provides: {hash_object.hexdigest()}')
         hash_object.update(dump(encode(self.manifest.triggers), None, ).strip().encode('utf-8'))
-        logging.warning(f'{self.name}, triggers: {hash_object.hexdigest()}')
 
         if not isinstance(self.source, InternalDataSource) and not os.path.exists(self.source.path):
             hash_object.update('[UNKNOWN]'.strip().encode('utf-8'))
