@@ -23,7 +23,7 @@ class LockDict(dict[K, T]):
 
     def _check_key(self, key: K):
         if self._key_type and not isinstance(key, self._key_type):
-            raise KeyError(f"Key must be an instance of '{self._key_type}'")
+            raise KeyError(f"Key must be an instance of '{self._key_type}', '{key}' given.")
 
     def __setitem__(self, key: K, value: T):
         self._check_key(key)
