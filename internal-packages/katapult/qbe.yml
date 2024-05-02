@@ -2,11 +2,9 @@ name: katapult
 author: Arksine@github.com
 license: GNU GPL v3.0
 homepage: https://github.com/Arksine/katapult
+type: service
 data-source:
   git: https://github.com/Arksine/katapult
 provides:
-  system-packages:
+- system-packages:
     apt: [ dfu-util ]
-triggers:
-  installed:
-    - shell: !PKG link.sh

@@ -1,12 +1,12 @@
 name: klipper-z-calibration
 author: protoloft@github.com
 license: GNU GPL v3.0
+type: extension
 data-source:
   git: https://github.com/protoloft/klipper_z_calibration.git
 provides:
-  klipper-extension:
+- klipper-extension:
     - z_calibration.py
-    - [ !PKG dynamic_bed_mesh_reference.py, dynamic_bed_mesh_reference.py ]
   klipper-config:
     link:
       - [ !PKG loader.cfg, z_calibration-and-bed_mesh_origin.loader.cfg ]

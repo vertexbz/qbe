@@ -1,282 +1,93 @@
 {
-  "$schema": "http://json-schema.org/schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "title": "QBE Package definition schema",
-  "additionalProperties": false,
+  "title": "Manifest",
   "properties": {
     "name": {
-      "title": "Package name",
-      "type": "string",
-      "pattern": "[a-z][a-z0-9-]+[a-z0-9]"
-    },
-    "author": {
-      "title": "Author email",
-      "type": "string",
-      "format": "email"
-    },
-    "license": {
-      "title": "Package license",
-      "type": "string",
-      "format": "license"
-    },
-    "homepage": {
-      "title": "Package homepage",
       "type": "string"
     },
-    "data-source": {
-      "type": "object",
-      "description": "InternalDependency only",
-      "$ref": "./printer.json#/definitions/Dependency"
+    "author": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string"
     },
     "provides": {
-      "title": "Features provided by package",
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "system-packages": {
-          "title": "Required system packages",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "apt": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/ManifestProvides"
           }
-        },
-        "pip-app": {
-          "title": "pip installed application",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "services": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "pip-packages": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "pip-requirements": {
-              "type": "string"
-            }
-          }
-        },
-        "klipper-config": {
-          "title": "Klipper configuration",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "link": {
-              "title": "Link",
-              "description": "Links file/dir to klippers configuration directory",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "blueprint": {
-              "title": "Blueprint",
-              "description": "Copies template file/dir to klippers configuration directory if not exists",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "template": {
-              "title": "Template",
-              "description": "Renders jinja template file to klippers configuration directory if not exists",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            }
-          }
-        },
-        "user-config": {
-          "title": "User configuration",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "link": {
-              "title": "Link",
-              "description": "Links file/dir to home directory",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "blueprint": {
-              "title": "Blueprint",
-              "description": "Copies template file/dir to home directory if not exists",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "template": {
-              "title": "Template",
-              "description": "Renders jinja template file to home directory if not exists",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            }
-          }
-        },
-        "klipper-screen-config": {
-          "title": "Klipper-screen configuration",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "link": {
-              "title": "Link",
-              "description": "Links file/dir to klipper-screens configuration directory",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "blueprint": {
-              "title": "Blueprint",
-              "description": "Copies template file/dir to klipper-screens configuration directory if not exists",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "template": {
-              "title": "Template",
-              "description": "Renders jinja template file to klipper-screens configuration directory if not exists",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            }
-          }
-        },
-        "moonraker-config": {
-          "title": "Moonraker configuration",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "link": {
-              "title": "Link",
-              "description": "Links file/dir to moonrakers configuration directory",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "blueprint": {
-              "title": "Blueprint",
-              "description": "Copies template file/dir to moonrakers configuration directory if not exists",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "template": {
-              "title": "Template",
-              "description": "Renders jinja template file to moonrakers configuration directory if not exists",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            }
-          }
-        },
-        "system-config": {
-          "title": "System configuration",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "link": {
-              "title": "Link",
-              "description": "Links file/dir to system directory",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "blueprint": {
-              "title": "Blueprint",
-              "description": "Copies template file/dir to system directory if not exists",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            },
-            "template": {
-              "title": "Template",
-              "description": "Renders jinja template file to system directory if not exists",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/BaseOperationArgs"
-              }
-            }
-          }
-        },
-        "klipper-screen-theme": {
-          "title": "Klipper screen theme",
-          "description": "Links screen theme to themes directory",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/BaseOperationArgs"
-          }
-        },
-        "ansible": {
-          "title": "Ansible playbook",
-          "description": "Runs ansible playbook",
-          "type": "string"
-        },
-        "klipper-extension": {
-          "title": "Klipper extensions",
-          "description": "Links extension to klippers extras directory",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/BaseOperationArgs"
-          }
-        },
-        "moonraker-extension": {
-          "title": "Moonraker extensions",
-          "description": "Links extension to moonrakers components directory",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/BaseOperationArgs"
-          }
-        }
+        ]
       }
     },
-    "triggers": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "updated": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Trigger"
-          }
+    "homepage": {
+      "anyOf": [
+        {
+          "type": "string"
         },
-        "installed": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Trigger"
-          }
-        },
-        "always": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Trigger"
-          }
+        {
+          "type": "null"
         }
-      }
+      ],
+      "default": null
+    },
+    "type": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PackageType"
+        }
+      ],
+      "default": "package"
+    },
+    "data-source": {
+      "anyOf": [
+        {
+          "anyOf": [
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/GitDataSource"
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/LocalDataSource"
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/ZipDataSource"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "triggers": {
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ManifestTriggers"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [
@@ -285,172 +96,720 @@
     "license",
     "provides"
   ],
-  "definitions": {
-    "ServiceReloadTrigger": {
+  "$defs": {
+    "SrcDst": {
       "type": "object",
-      "additionalProperties": false,
+      "title": "SrcDst",
       "properties": {
-        "service-reload": {
+        "source": {
           "type": "string"
         },
-        "restart": {
-          "type": "boolean"
-        },
-        "daemon-reload": {
-          "type": "boolean"
+        "target": {
+          "type": "string"
         },
         "only": {
-          "type": "object",
-          "additionalProperties": true
+          "type": "object"
         },
         "unless": {
-          "type": "object",
-          "additionalProperties": true
+          "type": "object"
+        }
+      },
+      "required": [
+        "source",
+        "target"
+      ]
+    },
+    "OperationConfig": {
+      "type": "object",
+      "title": "OperationConfig",
+      "properties": {
+        "link": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SrcDst"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "blueprint": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SrcDst"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "template": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SrcDst"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
         }
       }
     },
-    "GcodeTrigger": {
+    "PipAppConfig": {
       "type": "object",
-      "additionalProperties": false,
+      "title": "PipAppConfig",
+      "properties": {
+        "setup": {
+          "type": "boolean",
+          "default": false
+        },
+        "pip-requirements": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "pip-packages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SrcDst"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "SystemOperationConfig": {
+      "type": "object",
+      "title": "SystemOperationConfig",
+      "properties": {
+        "link": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SrcDst"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "blueprint": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SrcDst"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "template": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SrcDst"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "SystemPackagesConfig": {
+      "type": "object",
+      "title": "SystemPackagesConfig",
+      "properties": {
+        "apt": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "apt"
+      ]
+    },
+    "ManifestProvides": {
+      "type": "object",
+      "title": "ManifestProvides",
+      "properties": {
+        "klipper-config": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/OperationConfig"
+            }
+          ]
+        },
+        "klipper-extension": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SrcDst"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "klipper-screen-config": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/OperationConfig"
+            }
+          ]
+        },
+        "klipper-screen-theme": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SrcDst"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "moonraker-config": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/OperationConfig"
+            }
+          ]
+        },
+        "moonraker-extension": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SrcDst"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "pip-app": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/PipAppConfig"
+            }
+          ]
+        },
+        "system-config": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/SystemOperationConfig"
+            }
+          ]
+        },
+        "system-packages": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/SystemPackagesConfig"
+            }
+          ]
+        },
+        "user-config": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/OperationConfig"
+            }
+          ]
+        }
+      }
+    },
+    "PackageType": {
+      "title": "PackageType",
+      "enum": [
+        "service",
+        "config",
+        "extension",
+        "package"
+      ]
+    },
+    "GitDataSource": {
+      "type": "object",
+      "title": "GitDataSource",
+      "properties": {
+        "git": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string",
+          "default": "master"
+        }
+      },
+      "required": [
+        "git"
+      ]
+    },
+    "LocalDataSource": {
+      "type": "object",
+      "title": "LocalDataSource",
+      "properties": {
+        "local": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "local"
+      ]
+    },
+    "ZipDataSource": {
+      "type": "object",
+      "title": "ZipDataSource",
+      "properties": {
+        "zip": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "zip"
+      ]
+    },
+    "GCodeTrigger": {
+      "type": "object",
+      "title": "GCodeTrigger",
       "properties": {
         "gcode": {
           "type": "string"
         },
         "only": {
-          "type": "object",
-          "additionalProperties": true
+          "type": "object"
         },
         "unless": {
-          "type": "object",
-          "additionalProperties": true
+          "type": "object"
         }
-      }
+      },
+      "required": [
+        "gcode"
+      ]
     },
     "MessageTrigger": {
       "type": "object",
-      "additionalProperties": false,
+      "title": "MessageTrigger",
       "properties": {
         "message": {
           "type": "string"
         },
         "only": {
-          "type": "object",
-          "additionalProperties": true
+          "type": "object"
         },
         "unless": {
-          "type": "object",
-          "additionalProperties": true
+          "type": "object"
         }
-      }
+      },
+      "required": [
+        "message"
+      ]
+    },
+    "ServiceReloadTrigger": {
+      "type": "object",
+      "title": "ServiceReloadTrigger",
+      "properties": {
+        "service-reload": {
+          "type": "string"
+        },
+        "restart": {
+          "type": "boolean",
+          "default": false
+        },
+        "daemon-reload": {
+          "type": "boolean",
+          "default": false
+        },
+        "only": {
+          "type": "object"
+        },
+        "unless": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "service-reload"
+      ]
     },
     "ShellTrigger": {
       "type": "object",
-      "additionalProperties": false,
+      "title": "ShellTrigger",
       "properties": {
         "shell": {
           "type": "string"
         },
         "quiet": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
+        },
+        "sudo": {
+          "type": "boolean",
+          "default": false
         },
         "only": {
-          "type": "object",
-          "additionalProperties": true
+          "type": "object"
         },
         "unless": {
-          "type": "object",
-          "additionalProperties": true
+          "type": "object"
         }
-      }
-    },
-    "Trigger": {
-      "type": "object",
-      "anyOf": [
-        {
-          "$ref": "#/definitions/ShellTrigger"
-        },
-        {
-          "$ref": "#/definitions/GcodeTrigger"
-        },
-        {
-          "$ref": "#/definitions/MessageTrigger"
-        },
-        {
-          "$ref": "#/definitions/ServiceReloadTrigger"
-        }
+      },
+      "required": [
+        "shell"
       ]
     },
-    "BaseOperationArgs": {
-      "anyOf": [
-        {
-          "title": "Source & destination",
-          "type": "string"
-        },
-        {
-          "title": "Source : destination",
+    "ManifestTriggers": {
+      "type": "object",
+      "title": "ManifestTriggers",
+      "properties": {
+        "installed": {
           "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
           "items": {
-            "type": "string"
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/GCodeTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/MessageTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/ServiceReloadTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/ShellTrigger"
+                  }
+                ]
+              }
+            ]
           }
         },
-        {
-          "title": "Source : default destination",
+        "updated": {
           "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
-          "items": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "boolean",
-              "enum": [
-                true
-              ]
-            }
-          ]
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/GCodeTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/MessageTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/ServiceReloadTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/ShellTrigger"
+                  }
+                ]
+              }
+            ]
+          }
         },
-        {
-          "title": "Extended definition",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "source": {
-              "title": "Source",
-              "type": "string"
-            },
-            "target": {
-              "anyOf": [
-                {
-                  "title": "Destination",
-                  "type": "string"
-                },
-                {
-                  "title": "Default destination",
-                  "type": "boolean",
-                  "enum": [
-                    true
-                  ]
-                }
-              ]
-            },
-            "only": {
-              "type": "object",
-              "additionalProperties": true
-            },
-            "unless": {
-              "type": "object",
-              "additionalProperties": true
-            }
-          },
-          "required": [
-            "source",
-            "target"
-          ]
+        "removed": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/GCodeTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/MessageTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/ServiceReloadTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/ShellTrigger"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "always": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/GCodeTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/MessageTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/ServiceReloadTrigger"
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/ShellTrigger"
+                  }
+                ]
+              }
+            ]
+          }
         }
-      ]
+      }
     }
   }
 }

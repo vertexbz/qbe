@@ -1,17 +1,18 @@
 name: moonraker-timelapse
 author: mainsail-crew@github.com
 license: GNU GPL v3.0
+type: extension
 data-source:
   git: https://github.com/mainsail-crew/moonraker-timelapse.git
   branch: main
 provides:
-  system-packages:
+- system-packages:
     apt: [ ffmpeg, wget, v4l-utils ]
-  moonraker-extension:
+- moonraker-extension:
     - [ component/timelapse.py, timelapse.py ]
-  klipper-config:
+- klipper-config:
     link:
       - [ klipper_macro/timelapse.cfg, timelapse.cfg ]
-  moonraker-config:
+- moonraker-config:
     link:
       - [ !PKG loader.conf, moonraker-timelapse.conf ]

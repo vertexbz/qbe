@@ -2,20 +2,23 @@ name: moonraker
 author: arksine@github.com
 homepage: https://moonraker.readthedocs.io/en/latest/
 license: GNU GPL v3.0
+type: service
 data-source:
   git: https://github.com/Arksine/moonraker.git
 provides:
-  system-packages:
+- system-packages:
     apt: [ python3-dev, libopenjp2-7, python3-libgpiod, curl, libcurl4-openssl-dev, libssl-dev, liblmdb-dev, libsodium-dev, zlib1g-dev, libjpeg-dev, packagekit, wireless-tools ]
-  pip-app:
+- pip-app:
     services:
       - !PKG moonraker.service
     pip-requirements: scripts/moonraker-requirements.txt
-  system-config:
-    blueprint:
+- system-config:
+    template:
       - [ !PKG apiserver.conf, /etc/nginx/server.d/proxy/apiserver.conf ]
       - [ !PKG upstream-apiserver.conf, /etc/nginx/conf.d/upstream-apiserver.conf ]
-  moonraker-config:
+- moonraker-extension:
+    - [ !PKG ../.., qbe ]
+- moonraker-config:
     link:
       - source: !PKG notifier/telegram.conf
         target: moonraker.telegram.conf
@@ -23,11 +26,11 @@ provides:
           notifier-telegram: true
     template:
       - source: !PKG loader.conf
-        target: true
+        target: !VAR paths.moonraker.config
         only:
           loader: true
       - source: !PKG base.conf
-        target: true
+        target: !VAR paths.moonraker.config
         unless:
           loader: true
       - source: !PKG moonraker.conf
@@ -40,7 +43,11 @@ triggers:
   installed:
     - shell: scripts/set-policykit-rules.sh --disable-systemctl
       quiet: true
+    - service-reload: moonraker
+      restart: true
   updated:
+    - service-reload: moonraker
+      restart: true
     - message: |
         moonraker.secrets:
         

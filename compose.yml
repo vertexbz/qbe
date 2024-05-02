@@ -8,6 +8,8 @@ services:
       - ./:/opt/qbe
       - ~/.ssh:/root/.ssh:ro
       - ~/.ssh:/home/printer/.ssh:ro
+    ports:
+      - 8080:80
     # user: printer
     tmpfs:
       - /tmp

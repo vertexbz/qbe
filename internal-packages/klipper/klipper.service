@@ -11,10 +11,11 @@ WantedBy=multi-user.target
 
 [Service]
 Type=simple
+PermissionsStartOnly=true
+ExecStartPre=/bin/bash -c "rm -rf {{paths.klipper.serial}} {{paths.klipper.sock}} && mkdir -p {{paths.klipper.serial|dirname}} {{paths.klipper.sock|dirname}} {{paths.klipper.log|dirname}} && chown {{user}} {{paths.klipper.serial|dirname}} {{paths.klipper.sock|dirname}} {{paths.klipper.log|dirname}}"
 User={{user}}
 RemainAfterExit=yes
 WorkingDirectory={{dirs.pkg}}
-ExecStartPre=/bin/bash -c "rm -rf {{paths.klipper.serial}} {{paths.klipper.sock}} && mkdir -p {{paths.klipper.serial|dirname}} {{paths.klipper.sock|dirname}} && chown {{user}} {{paths.klipper.serial|dirname}} {{paths.klipper.sock|dirname}}"
 ExecStart={{dirs.venv}}/bin/python {{dirs.pkg}}/klippy/klippy.py {{paths.klipper.config}} -l {{paths.klipper.log}} -I {{paths.klipper.serial}} -a {{paths.klipper.sock}}
 Restart=always
 RestartSec=10
