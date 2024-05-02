@@ -1,9 +1,10 @@
 name: klipper-stable-z-home
 author: matthewlloyd@github.com
 license: GNU GPL v3.0
+type: extension
 data-source:
   git: https://github.com/matthewlloyd/Klipper-Stable-Z-Home.git
   branch: main
 provides:
-  klipper-extension:
+- klipper-extension:
     - stable_z_home.py

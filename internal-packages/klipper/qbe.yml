@@ -2,20 +2,21 @@ name: klipper
 author: klipper3d@github.com
 license: GNU GPL v3.0
 homepage: https://www.klipper3d.org
+type: service
 data-source:
   git: https://github.com/Klipper3d/klipper
 provides:
-  system-packages:
+- system-packages:
     apt: [ python3-dev, libffi-dev, build-essential, libncurses-dev, avrdude, gcc-avr, binutils-avr, avr-libc, stm32flash, dfu-util, libnewlib-arm-none-eabi, gcc-arm-none-eabi, binutils-arm-none-eabi, libusb-1.0-0, libusb-1.0-0-dev, python3-numpy, python3-matplotlib, libatlas-base-dev ]
-  pip-app:
+- pip-app:
     services:
       - !PKG klipper.service
     pip-requirements: ./scripts/klippy-requirements.txt
     pip-packages: [ numpy ]
-  klipper-config:
+- klipper-config:
     template:
       - source: !PKG loader.cfg
-        target: true
+        target: !VAR paths.klipper.config
         only:
           loader: true
       - source: !PKG host.cfg
@@ -23,6 +24,13 @@ provides:
         only:
           loader: true
       - source: !PKG base.conf
-        target: true
+        target: !VAR paths.klipper.config
         unless:
           loader: true
+triggers:
+  installed:
+    - service-reload: klipper
+      restart: true
+  updated:
+    - service-reload: klipper
+      restart: true

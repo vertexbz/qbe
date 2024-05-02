@@ -1,28 +1,26 @@
 name: klipper-screen
 author: jordanruthe@github.com
 license: GNU GPL v3.0
+type: service
 data-source:
   git: https://github.com/jordanruthe/KlipperScreen.git
 provides:
-  system-packages:
+- system-packages:
     apt: [ xinit, xinput, x11-xserver-utils, xserver-xorg-input-evdev, xserver-xorg-input-libinput, python3-virtualenv, virtualenv, python3-distutils, libgirepository1.0-dev, gcc, libcairo2-dev, pkg-config, python3-dev, gir1.2-gtk-3.0, librsvg2-common, libopenjp2-7, libatlas-base-dev, wireless-tools, libdbus-glib-1-dev, autoconf, xserver-xorg-legacy, fonts-nanum, fonts-ipafont, libmpv-dev, libdbus-glib-1-dev, autoconf, fonts-ipafont, libmpv-dev, libdbus-glib-1-dev, autoconf, fonts-ipafont, libmpv-dev ]
-  pip-app:
+- pip-app:
     pip-requirements: scripts/KlipperScreen-requirements.txt
     services:
-      - [ !PKG KlipperScreen.service, KlipperScreen.service ]
-  klipper-screen-config:
+      - !PKG KlipperScreen.service
+- klipper-screen-config:
     template:
       - source: !PKG loader.conf
-        target: true
+        target: !VAR paths.klipper_screen.config
         only:
           loader: true
       - source: !PKG screen.conf
         target: screen.conf
         unless:
           user_config: false
-  moonraker-config:
-    template:
-      - [ !PKG update.conf, !LINK moonraker.klipper-screen.conf ]
 triggers:
   installed:
     - shell: !PKG trigger.sh

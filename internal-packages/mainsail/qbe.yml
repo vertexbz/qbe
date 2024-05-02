@@ -1,15 +1,13 @@
 name: mainsail
 author: mainsail-crew@github.com
 license: GNU GPL v3.0
+type: service
 data-source:
   zip: https://github.com/mainsail-crew/mainsail/releases/latest/download/mainsail.zip
 provides:
-  system-config:
-    blueprint:
-      - [ !PKG mainsail.conf, /etc/nginx/server.d/content/mainsail.conf ]
-  moonraker-config:
+- system-config:
     template:
-      - [ !PKG update.conf, !LINK moonraker.mainsail.conf ]
+      - [ !PKG mainsail.conf, /etc/nginx/server.d/content/mainsail.conf ]
 triggers:
   installed:
     - service-reload: nginx

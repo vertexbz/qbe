@@ -26,7 +26,9 @@ cp ./qbe/qbe.template.yml ~/qbe.yml
 virtualenv -p python3 /var/opt/qbe
 
 /var/opt/qbe/bin/pip install --upgrade pip
-/var/opt/qbe/bin/pip install --editable /opt/qbe # takes a moment
+/var/opt/qbe/bin/pip install --editable /opt/qbe
+ln -sf /opt/qbe `/var/opt/qbe/bin/python -c 'import site; print(site.getsitepackages()[0])'`/qbe
+
 
 sudo ln -sf /var/opt/qbe/bin/qbe /usr/local/bin/qbe
 ```
@@ -45,12 +47,9 @@ If your setup requires system changes it may be worth to reboot after run
 
 # TODO
 
-* [ ] Global options
-* [ ] Moonraker db interactions
-* [ ] Moonraker plugin
-* [ ] git/local-repo providers
-* [ ] state and reverting changes
-* [ ] replace ansible with something faster?
-* [ ] better errors and verbosity
-* [ ] rework order of execution?
-* [ ] docs?
+* [ ] Moonraker db interactions?
+* [ ] Support multiple providers of the same type
+* [ ] Config (qbefile, manifest, lockfile?) validation
+* [ ] More info in cli status
+* [ ] Nice Moonraker sudo
+* [ ] Docs

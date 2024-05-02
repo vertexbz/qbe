@@ -1,24 +1,21 @@
-import os
+import os.path
+
 from setuptools import setup, find_packages
-
-requirements = [
-    'Click', 'PyYAML', 'GitPython', 'giturlparse.py', 'virtualenv', 'requirements-parser', 'jinja2', 'psutil',
-    'tabulate'
-]
-
-if not os.sys.platform.startswith('darwin'):
-    requirements.append('pystemd')
-    requirements.append('cryptography==2.3')
 
 setup(
     name='qbe',
     version='0.1.0',
-    packages=find_packages(),
+    packages=['qbe', *['qbe.' + p for p in find_packages(where='.', exclude=['tests'])]],
+    package_dir={
+        'qbe': os.path.dirname(__file__)
+    },
+    install_requires=[
+        'Click', 'jinja2', 'dc-schema', 'requests', 'pyaml', 'tabulate', 'psutil', 'typing_extensions'
+    ],
     include_package_data=True,
-    install_requires=requirements,
     entry_points={
         'console_scripts': [
             'qbe = qbe.bin:entry'
         ],
-    },
+    }
 )

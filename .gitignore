@@ -10,3 +10,6 @@ __pycache__
 /qbe.lock
 /qbe/support/_canboot.py
 /.qemu
+/.idea
+/qbe.egg-info/
+/build/

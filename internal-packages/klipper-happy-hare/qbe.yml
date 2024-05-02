@@ -1,11 +1,12 @@
 name: klipper-happy-hare
 author: moggieuk@github.com
 license: GNU GPL v3.0
+type: extension
 data-source:
   git: https://github.com/moggieuk/Happy-Hare.git
   branch: main
 provides:
-  klipper-extension:
+- klipper-extension:
     - [ extras/mmu.py, mmu.py ]
     - [ extras/mmu_servo.py, mmu_servo.py ]
     - [ extras/mmu_encoder.py, mmu_encoder.py ]
@@ -16,7 +17,5 @@ provides:
   moonraker-extension:
     - [ components/mmu_server.py, mmu_server.py ]
   moonraker-config:
-    template:
-      - [ !PKG update.conf, !LINK moonraker.klipper-happy-hare.conf ]
     link:
       - [ !PKG loader.conf, moonraker-happy-hare.conf ]
