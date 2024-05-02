@@ -78,7 +78,7 @@ class QBE:
                 continue
 
             if name == 'mcu':
-                name = next(filter(lambda m: m.main, self.qbefile.mcus))
+                name = next(filter(lambda m: m.main, self.qbefile.mcus)).name
             else:
                 name = name.removeprefix('mcu ')
 
