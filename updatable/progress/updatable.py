@@ -60,7 +60,7 @@ class UpdatableProgress:
 
     def log(self, message: str, _is_toplevel=True) -> None:
         if _is_toplevel:
-            message = self._formatter.format_log(message)
+            message = self._formatter.format_raw_log(message)
 
         return self._parent.log(self._formatter.format_updatable(self._updatable) + message)
 

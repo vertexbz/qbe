@@ -35,6 +35,9 @@ class LogFormatter:
     def format_log(self, message: str) -> str:
         return ' ' + message
 
+    def format_raw_log(self, message: str) -> str:
+        return ' ' + message
+
     def format_changed(self, message: str) -> str:
         return ' ' + message
 
