@@ -9,4 +9,4 @@ provides:
     - z_calibration.py
   klipper-config:
     link:
-      - [ !PKG loader.cfg, z_calibration-and-bed_mesh_origin.loader.cfg ]
+      - [ !PKG loader.cfg, z_calibration.loader.cfg ]
