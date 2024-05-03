@@ -1,9 +1,35 @@
 # QBE
 
-CLI Tool and Moonraker extension (update manager compatible) to manage your 3D printer configuration extensions and services, with rich features and automated setup helpers
+CLI Tool and Moonraker extension (update manager compatible) to manage your 3D printer configuration extensions and services, auto-update MCUs firmware, with rich features and automated setup helpers
 
+<details>
+  <summary>Moonraker update manager extension</summary>
 
-> NOTE: it assumes user has NOPASSWD sudo access
+  ![img](./docs/um.png)
+</details>
+
+<details>
+  <summary>Commandline interface</summary>
+
+  ```
+  Usage: qbe [OPTIONS] COMMAND [ARGS]...
+    
+  Options:
+    -c, --config TEXT
+    -l, --lockfile TEXT
+    -h, --help           Show this message and exit.
+    
+  Commands:
+    debug            Debug / misc stuff
+    mcu-update       Update MCU Firmware
+    refresh          Refresh remotes
+    self-update      QBE Self Update
+    status           Packages status
+    update           Update dependencies
+  ```
+</details>
+
+> NOTE: it assumes user has NOPASSWD sudo access at the moment
 
 ## Installation
 
