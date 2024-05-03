@@ -38,9 +38,9 @@ async def refresh(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], mcu
                     await pkg.refresh(progress=p)
 
                     if lock.remote_version != lock.current_version:
-                        p.log(' ' + fine(f'current version {lock.current_version}, update available to {lock.remote_version}'))
+                        p.log(fine(f'current version {lock.current_version}, update available to {lock.remote_version}'))
                     else:
-                        p.log(' ' + comment('up to date'))
+                        p.log(comment('up to date'))
 
         if not name:
             for mcu_config in qbefile.mcus:
@@ -55,9 +55,9 @@ async def refresh(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], mcu
                     await mcu.refresh(progress=p)
 
                     if lock.remote_version != lock.current_version:
-                        p.log(' ' + fine(f'current version {lock.current_version}, update available to {lock.remote_version}'))
+                        p.log(fine(f'current version {lock.current_version}, update available to {lock.remote_version}'))
                     else:
-                        p.log(' ' + comment('up to date'))
+                        p.log(comment('up to date'))
     finally:
         lockfile.save()
 

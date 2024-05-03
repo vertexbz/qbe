@@ -43,7 +43,7 @@ class ProviderProgress(IProviderProgress):
     def log(self, message: str, _is_toplevel=True) -> None:
         if _is_toplevel:
             message = self._formatter.format_log(message)
-        return self._parent.log(self._formatter.format_provider(self._provider) + message)
+        return self._parent.log(self._formatter.format_provider(self._provider) + message, _is_toplevel=False)
 
     def log_changed(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, _is_toplevel=True, **kw) -> None:
         if input or output:
@@ -52,7 +52,7 @@ class ProviderProgress(IProviderProgress):
         self._changed = True
         if _is_toplevel:
             message = self._formatter.format_changed(message)
-        return self._parent.log(self._formatter.format_provider(self._provider) + message)
+        return self._parent.log(self._formatter.format_provider(self._provider) + message, _is_toplevel=False)
 
     def log_removed(self, message: str, entry: Optional[Entry] = None, typ: MessageType = MessageType.SUCCESS, _is_toplevel=True) -> None:
         if entry:
@@ -61,7 +61,7 @@ class ProviderProgress(IProviderProgress):
         self._changed = True
         if _is_toplevel:
             message = self._formatter.format_removed(message, typ)
-        return self._parent.log(self._formatter.format_provider(self._provider) + message)
+        return self._parent.log(self._formatter.format_provider(self._provider) + message, _is_toplevel=False)
 
     def log_unchanged(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, _is_toplevel=True, **kw) -> None:
         if input or output:
@@ -69,7 +69,7 @@ class ProviderProgress(IProviderProgress):
 
         if _is_toplevel:
             message = self._formatter.format_unchanged(message)
-        return self._parent.log(self._formatter.format_provider(self._provider) + message)
+        return self._parent.log(self._formatter.format_provider(self._provider) + message, _is_toplevel=False)
 
     def forget(self, entry: Optional[Entry]) -> None:
         return self._provided.forget(entry)

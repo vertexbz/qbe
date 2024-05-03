@@ -58,7 +58,10 @@ class UpdatableProgress:
             self._parent.mark_removed()
         # return True # to skip package
 
-    def log(self, message: str) -> None:
+    def log(self, message: str, _is_toplevel=True) -> None:
+        if _is_toplevel:
+            message = self._formatter.format_log(message)
+
         return self._parent.log(self._formatter.format_updatable(self._updatable) + message)
 
     def notify(self, trigger: Trigger) -> None:

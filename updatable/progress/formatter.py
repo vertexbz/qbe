@@ -19,10 +19,10 @@ class MessageType(enum.Enum):
 class LogFormatter:
 
     def format_updatable(self, updatable: Updatable) -> str:
-        return f'{updatable.name}: '
+        return f'{updatable.name}:'
 
     def format_provider(self, provider: Provider) -> str:
-        return f'{provider.DISCRIMINATOR}: '
+        return f' {provider.DISCRIMINATOR}: '
 
     def format_data_source(self, data_source: DataSource) -> str:
         return f'package: '
