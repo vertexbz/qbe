@@ -112,7 +112,7 @@ class QBEDeployer(BaseDeploy):
             'detected_type': moonraker_package_type,
             'channel': 'stable',
             'channel_invalid': False,
-            'is_valid': remote_version != '?',
+            'is_valid': True,
             'is_dirty': self._updatable.options_dirty or self._updatable.recipie_dirty,
             'detached': False,
             'pristine': True,
