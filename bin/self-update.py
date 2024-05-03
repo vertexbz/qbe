@@ -10,7 +10,7 @@ from ..package.qbe import QBE as QBEPackage
 
 
 @async_command(short_help='QBE Self Update')
-@click.option('--no-refresh', '-r', default=True, is_flag=True)
+@click.option('--no-refresh', '-r', 'refresh', default=True, is_flag=True)
 @pass_lockfile
 async def self_update(lockfile: LockFile, refresh: bool) -> None:
     progress = CliProgress(lockfile)
