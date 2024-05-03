@@ -25,7 +25,10 @@ async def mcu_update(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], 
     if (all and name) or (not all and not name):
         raise click.BadParameter('Either --all or --name has to be provided')
 
-    if name and name.lower() not in map(lambda m: m.name.lower(), qbefile.mcus):
+    if name:
+        name = name.lower()
+
+    if name and name not in map(lambda m: m.name.lower(), qbefile.mcus):
         raise click.BadParameter(f'Unknown name {name}')
 
     progress = CliProgress(lockfile)
@@ -34,7 +37,7 @@ async def mcu_update(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], 
             lock = lockfile.mcus.always(mcu_config.name)
             mcu = MCU(mcu_config, lock)
 
-            if name is not None and mcu.name != name:
+            if name is not None and mcu.name.lower() != name:
                 continue
 
             if force:
