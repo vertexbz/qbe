@@ -104,6 +104,10 @@ class QBEDeployer(BaseDeploy):
         remote_version = self._updatable.version.remote
         moonraker_package_type = 'git_repo' if source.has_change_history else 'web'
 
+        will_be_installed = local_version == '?' and remote_version != '?'
+        is_options_dirty = self._updatable.options_dirty and not will_be_installed
+        is_recipie_dirty = self._updatable.recipie_dirty and not will_be_installed
+        
         return {
             'debug_enabled': self.server.is_debug_enabled(),
             'info_tags': [],
@@ -113,7 +117,7 @@ class QBEDeployer(BaseDeploy):
             'channel': 'stable',
             'channel_invalid': False,
             'is_valid': True,
-            'is_dirty': self._updatable.options_dirty or self._updatable.recipie_dirty,
+            'is_dirty': is_options_dirty or is_recipie_dirty,
             'detached': False,
             'pristine': True,
             'corrupt': self._updatable.lock.status.unfinished(),
@@ -130,10 +134,11 @@ class QBEDeployer(BaseDeploy):
             'remote_version': format_version(remote_version, short=True),
 
             'warnings': [
-                *(['Options changed, update to apply changes'] if self._updatable.options_dirty else []),
-                *(['Recipie changed, update to apply changes'] if self._updatable.recipie_dirty else []),
+                *(['Options changed, update to apply changes'] if is_options_dirty else []),
+                *(['Recipie changed, update to apply changes'] if is_recipie_dirty else []),
             ],
             'anomalies': [
+                *(['Will be installed'] if will_be_installed else []),
                 *(['Unfinished update, refresh not available'] if self._updatable.lock.status.unfinished() else []),
             ],
 
