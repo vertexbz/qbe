@@ -30,37 +30,34 @@ async def refresh(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], mcu
                 if name is not None and pkg.name != name:
                     continue
 
-                if lock.status.unfinished():
-                    print(f'{nc(pkg.name)} ', end='')
-                    warning('update unfinished, skipping')
-                    continue
-
                 with progress.updatable(pkg) as p:
-                    print(f'{nc(pkg.name)} ', end='')
+                    if lock.status.unfinished():
+                        p.log(warning('update unfinished, skipping'))
+                        continue
+
                     await pkg.refresh(progress=p)
 
                     if lock.remote_version != lock.current_version:
-                        fine(f'current version {lock.current_version}, update available to {lock.remote_version}')
+                        p.log(fine(f'current version {lock.current_version}, update available to {lock.remote_version}'))
                     else:
-                        comment('up to date')
+                        p.log(comment('up to date'))
 
         if not name:
             for mcu_config in qbefile.mcus:
                 lock = lockfile.mcus.always(mcu_config.name)
                 mcu = MCU(mcu_config, lock)
-                if lock.status.unfinished():
-                    print(f'{nc(mcu.name, mcu=True)} ', end='')
-                    warning('update unfinished, skipping')
-                    continue
 
                 with progress.updatable(mcu) as p:
-                    print(f'{nc(mcu.name, mcu=True)} ', end='')
+                    if lock.status.unfinished():
+                        p.log(warning('update unfinished, skipping'))
+                        continue
+
                     await mcu.refresh(progress=p)
 
                     if lock.remote_version != lock.current_version:
-                        fine(f'current version {lock.current_version}, update available to {lock.remote_version}')
+                        p.log(fine(f'current version {lock.current_version}, update available to {lock.remote_version}'))
                     else:
-                        comment('up to date')
+                        p.log(comment('up to date'))
     finally:
         lockfile.save()
 

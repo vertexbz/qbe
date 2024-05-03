@@ -13,13 +13,13 @@ if TYPE_CHECKING:
     from ....lockfile.provided import ProviderProvided
     from ....lockfile.provided.provider_provided import Entry
 
+
 class ProviderProgress(IProviderProgress):
     def __init__(self, parent: UpdatableProgress, provider: Provider, provided: ProviderProvided) -> None:
         self._parent = parent
         self._formatter = parent._formatter
         self._provider = provider
         self._provided = provided
-        self._is_toplevel = True
         self._changed = False
 
     @property
@@ -31,7 +31,6 @@ class ProviderProgress(IProviderProgress):
         return self._provided.all
 
     def sub(self, name: str, case=False) -> IProviderProgress:
-        self._is_toplevel = False
         return ProviderSubProgress(self, name, case=case)
 
     def __enter__(self) -> IProviderProgress:
@@ -41,34 +40,34 @@ class ProviderProgress(IProviderProgress):
         if exc is None and self._changed:
             self._parent.mark_changed()
 
-    def log(self, message: str) -> None:
-        if self._is_toplevel:
+    def log(self, message: str, _is_toplevel=True) -> None:
+        if _is_toplevel:
             message = self._formatter.format_log(message)
         return self._parent.log(self._formatter.format_provider(self._provider) + message)
 
-    def log_changed(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, **kw) -> None:
+    def log_changed(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, _is_toplevel=True, **kw) -> None:
         if input or output:
             self._provided.notice(_path or tuple(), input, output, **kw)
 
         self._changed = True
-        if self._is_toplevel:
+        if _is_toplevel:
             message = self._formatter.format_changed(message)
         return self._parent.log(self._formatter.format_provider(self._provider) + message)
 
-    def log_removed(self, message: str, entry: Optional[Entry] = None, typ: MessageType = MessageType.SUCCESS) -> None:
+    def log_removed(self, message: str, entry: Optional[Entry] = None, typ: MessageType = MessageType.SUCCESS, _is_toplevel=True) -> None:
         if entry:
             self._provided.forget(entry)
 
         self._changed = True
-        if self._is_toplevel:
+        if _is_toplevel:
             message = self._formatter.format_removed(message, typ)
         return self._parent.log(self._formatter.format_provider(self._provider) + message)
 
-    def log_unchanged(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, **kw) -> None:
+    def log_unchanged(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, _is_toplevel=True, **kw) -> None:
         if input or output:
             self._provided.notice(_path or tuple(), input, output, **kw)
 
-        if self._is_toplevel:
+        if _is_toplevel:
             message = self._formatter.format_unchanged(message)
         return self._parent.log(self._formatter.format_provider(self._provider) + message)
 

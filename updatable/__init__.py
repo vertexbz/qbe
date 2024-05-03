@@ -64,6 +64,7 @@ class Updatable:
 
     async def refresh(self, progress: Optional[UpdatableProgress] = None, **kw) -> None:
         await self.source.refresh(self._lock, stdout_callback=progress.log if progress else None)
+        self._flush()
 
     async def update(self, progress: UpdatableProgress, **kw) -> None:
         with progress.sources(self.source) as p:
@@ -73,6 +74,7 @@ class Updatable:
 
             if await self.source.update(self._lock, stdout_callback=p.log):
                 p.log_changed('installed' if installing else 'updated')
+                self._flush()
             else:
                 p.log_unchanged('up to date')
 
@@ -85,3 +87,6 @@ class Updatable:
             },
             'options': self.options
         }
+
+    def _flush(self):
+        pass

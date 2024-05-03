@@ -19,18 +19,17 @@ def async_command(*args, **kwargs):
                 exc_type, exc_value, exc_traceback = sys.exc_info()
 
                 if isinstance(exc_value, CommandError):
-                    click.echo(click.style('Error in subcommand occurred!', fg='bright_red', bold=True), err=True)
-                    click.echo(click.style(f'Command: {exc_value.command}', fg='bright_red'), err=True)
-                    click.echo(click.style(f'Workdir: {exc_value.cwd}', fg='bright_red'), err=True)
-                    click.echo(click.style(f'Environment: {exc_value.env}', fg='bright_red'), err=True)
-                    click.echo(click.style(f'Stderr:\n{exc_value}', fg='bright_red'), err=True)
+                    print_error('Error in subcommand occurred!', bold=True)
+                    print_error(f'Command: {exc_value.command}')
+                    print_error(f'Workdir: {exc_value.cwd}')
+                    print_error(f'Environment: {exc_value.env}')
+                    print_error(f'Stderr:\n{exc_value}')
                     sys.exit(2)
 
-                click.echo(click.style('Unexpected error occurred!', fg='bright_red', bold=True), err=True)
-                click.echo(click.style('Traceback (most recent call last):', fg='bright_red'), err=True)
-                formatted_traceback = traceback.format_list(traceback.extract_tb(exc_traceback)[2:])
-                click.echo(click.style(''.join(formatted_traceback), fg='bright_red'), nl=False, err=True)
-                click.echo(click.style(f'{exc_type.__name__}: {exc_value}', fg='bright_red'), err=True)
+                print_error('Unexpected error occurred!', bold=True)
+                print_error('Traceback (most recent call last):')
+                print_error(''.join(traceback.format_list(traceback.extract_tb(exc_traceback)[2:])), nl=False)
+                print_error(f'{exc_type.__name__}: {exc_value}')
                 sys.exit(1)
 
         wrapper.__name__ = f.__name__
@@ -44,21 +43,25 @@ def async_command(*args, **kwargs):
     return decorator
 
 
+def print_error(message: str, bold=False, nl=True):
+    click.echo(error(message, bold=bold), nl=nl, err=True)
+
+
 def warning(message: str):
-    print(click.style(message, fg='bright_yellow'))
+    return click.style(message, fg='bright_yellow')
 
 
-def error(message: str):
-    click.echo(click.style(message, fg='bright_red'), err=True)
+def error(message: str, bold=False):
+    return click.style(message, fg='bright_red', bold=bold)
 
 
 def fine(message: str):
-    print(click.style(message, fg='green'))
+    return click.style(message, fg='green')
 
 
 def comment(message: str):
-    print(click.style(message, dim=True))
+    return click.style(message, dim=True)
 
 
 def bold(message: str):
-    print(click.style(message, bold=True))
+    return click.style(message, bold=True)

@@ -16,7 +16,6 @@ class ProviderSubProgress(IProviderProgress):
         self._formatter = parent._formatter
         self._name = name
         self._case = case
-        self._is_toplevel = True
 
     @property
     def untouched(self) -> set[Entry]:
@@ -27,7 +26,6 @@ class ProviderSubProgress(IProviderProgress):
         return self._parent.provided
 
     def sub(self, name: str, case=False) -> IProviderProgress:
-        self._is_toplevel = False
         return ProviderSubProgress(self, name, case=case)
 
     def __enter__(self) -> IProviderProgress:
@@ -36,41 +34,41 @@ class ProviderSubProgress(IProviderProgress):
     def __exit__(self, exc, value, tb):
         pass
 
-    def log(self, message: str) -> None:
-        if self._is_toplevel:
+    def log(self, message: str, _is_toplevel=True) -> None:
+        if _is_toplevel:
             message = self._formatter.format_log(message)
-        return self._parent.log(self._formatter.format_sub(self._name, self._is_toplevel, self._case) + message)
+        return self._parent.log(self._formatter.format_sub(self._name, _is_toplevel, self._case) + message, _is_toplevel=False)
 
-    def log_changed(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, **kw) -> None:
-        if self._is_toplevel:
+    def log_changed(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, _is_toplevel=True, **kw) -> None:
+        if _is_toplevel:
             message = self._formatter.format_changed(message)
 
         if not self._case:
             _path = (self._name,) + _path if _path else (self._name,)
 
         return self._parent.log_changed(
-            self._formatter.format_sub(self._name, self._is_toplevel, self._case) + message,
-            input=input, output=output, _path=_path, **kw
+            self._formatter.format_sub(self._name, _is_toplevel, self._case) + message,
+            input=input, output=output, _path=_path, _is_toplevel=False, **kw
         )
 
-    def log_removed(self, message: str, entry: Optional[Entry] = None, typ: MessageType = MessageType.SUCCESS) -> None:
-        if self._is_toplevel:
+    def log_removed(self, message: str, entry: Optional[Entry] = None, typ: MessageType = MessageType.SUCCESS, _is_toplevel=True) -> None:
+        if _is_toplevel:
             message = self._formatter.format_removed(message, typ)
 
         return self._parent.log_removed(
-            self._formatter.format_sub(self._name, self._is_toplevel, self._case) + message, entry
+            self._formatter.format_sub(self._name, _is_toplevel, self._case) + message, entry, _is_toplevel=False
         )
 
-    def log_unchanged(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, **kw) -> None:
-        if self._is_toplevel:
+    def log_unchanged(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, _is_toplevel=True, **kw) -> None:
+        if _is_toplevel:
             message = self._formatter.format_unchanged(message)
 
         if not self._case:
             _path = (self._name,) + _path if _path else (self._name,)
 
         return self._parent.log_unchanged(
-            self._formatter.format_sub(self._name, self._is_toplevel, self._case) + message,
-            input=input, output=output, _path=_path, **kw
+            self._formatter.format_sub(self._name, _is_toplevel, self._case) + message,
+            input=input, output=output, _path=_path, _is_toplevel=False, **kw
         )
 
     def forget(self, entry: Optional[Entry]) -> None:

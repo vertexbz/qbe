@@ -43,13 +43,14 @@ class OperationMixin(Provider[T], ABC):
                         with p.sub(op_target, case=True) as pp:
                             source = self._src_path(operation.source)
 
+                            target_dir = target
                             if field.metadata.get('link_target', False) and link_target:
-                                target = link_target
+                                target_dir = link_target
 
                             if isinstance(operation.target, VarTag):
                                 destination = op_target
                             else:
-                                destination = os.path.join(target, op_target)
+                                destination = os.path.join(target_dir, op_target)
 
                             exists = os.path.exists(destination)
                             result = handler(source, destination, self._updatable.template_context())

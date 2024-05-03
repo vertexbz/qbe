@@ -3,6 +3,7 @@ from __future__ import annotations
 import click
 
 from .color import name_color
+from ..mcu import MCU
 from ..provider.base import Provider
 from ..updatable import Updatable
 from ..updatable.data_source.base import DataSource
@@ -10,12 +11,9 @@ from ..updatable.progress.formatter import LogFormatter, MessageType
 
 
 class Formatter(LogFormatter):
-    def __init__(self, is_mcu=False):
-        self._is_mcu = is_mcu
-
     def format_updatable(self, updatable: Updatable) -> str:
         color = name_color(updatable.name)
-        if self._is_mcu:
+        if isinstance(updatable, MCU):
             return f'[MCU {click.style(updatable.name, fg=color)}]'
 
         return click.style(f'[{updatable.name}]', fg=color)

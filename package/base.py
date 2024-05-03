@@ -84,9 +84,6 @@ class Package(Updatable):
 
     async def refresh(self, **kw):
         await super().refresh(**kw)
-        self.__dict__.pop('source', None)
-        self.__dict__.pop('manifest', None)
-        self.__dict__.pop('providers', None)
         self.lock.recipie_hash_current = await self._hash_recipe()
 
     @cached_property
@@ -181,6 +178,11 @@ class Package(Updatable):
                 hash_object.update(readfile(path).encode('utf-8'))
 
         return hash_object.hexdigest()
+
+    def _flush(self):
+        self.__dict__.pop('source', None)
+        self.__dict__.pop('manifest', None)
+        self.__dict__.pop('providers', None)
 
 
 __all__ = ['Package']

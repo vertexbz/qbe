@@ -16,4 +16,4 @@ async def canboot_reset(interface: str, uuid: str):
     with CanSocket(asyncio.get_event_loop(), interface) as sock:
         await sock.bootloader(int(uuid, 16))
 
-    fine('Reset complete')
+    print(fine('Reset complete'))

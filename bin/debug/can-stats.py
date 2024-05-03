@@ -4,7 +4,7 @@ import click
 import psutil
 from tabulate import tabulate
 
-from ...cli import error, bold
+from ...cli import print_error, error, bold
 
 
 def intfmt(val: int) -> str:
@@ -16,7 +16,7 @@ def can_stats():
     stats = {k: v for k, v in psutil.net_io_counters(pernic=True).items() if k.startswith('can')}
 
     if len(stats.keys()) == 0:
-        error('No can interfaces found!')
+        print_error('No can interfaces found!')
 
     for iface, s in stats.items():
         table = [

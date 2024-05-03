@@ -26,19 +26,19 @@ class IProviderProgress:
         pass
 
     @abstractmethod
-    def log(self, message: str) -> None:
+    def log(self, message: str, _is_toplevel=False) -> None:
         pass
 
     @abstractmethod
-    def log_unchanged(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, **kw) -> None:
+    def log_unchanged(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, _is_toplevel=False, **kw) -> None:
         pass
 
     @abstractmethod
-    def log_changed(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, **kw) -> None:
+    def log_changed(self, message: str, input=None, output=None, _path: Optional[tuple[str, ...]] = None, _is_toplevel=False, **kw) -> None:
         pass
 
     @abstractmethod
-    def log_removed(self, message: str, entry: Optional[Entry] = None, typ: MessageType = MessageType.SUCCESS) -> None:
+    def log_removed(self, message: str, entry: Optional[Entry] = None, typ: MessageType = MessageType.SUCCESS, _is_toplevel=False) -> None:
         pass
 
     @abstractmethod

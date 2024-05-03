@@ -15,11 +15,11 @@ async def canboot_list(interface: str):
     with CanSocket(asyncio.get_event_loop(), interface) as sock:
         results = await sock.query()
 
-    fine('Query Complete')
+    print(fine('Query Complete'))
     print()
 
     if len(results) == 0:
-        warning('No Can nodes found')
+        print(warning('No Can nodes found'))
         return
 
     table = [
