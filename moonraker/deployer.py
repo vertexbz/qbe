@@ -107,7 +107,7 @@ class QBEDeployer(BaseDeploy):
         will_be_installed = local_version == '?' and remote_version != '?'
         is_options_dirty = self._updatable.options_dirty and not will_be_installed
         is_recipie_dirty = self._updatable.recipie_dirty and not will_be_installed
-        
+
         return {
             'debug_enabled': self.server.is_debug_enabled(),
             'info_tags': [],
@@ -117,7 +117,7 @@ class QBEDeployer(BaseDeploy):
             'channel': 'stable',
             'channel_invalid': False,
             'is_valid': True,
-            'is_dirty': is_options_dirty or is_recipie_dirty,
+            'is_dirty': is_options_dirty or is_recipie_dirty or will_be_installed,
             'detached': False,
             'pristine': True,
             'corrupt': self._updatable.lock.status.unfinished(),
