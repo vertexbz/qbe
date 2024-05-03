@@ -10,8 +10,8 @@ from ..updatable.progress import ProgressRoot
 
 
 class CliProgress(ProgressRoot):
-    def __init__(self, lockfile: LockFile, is_mcu=False):
-        super().__init__(lockfile, Formatter(is_mcu=is_mcu))
+    def __init__(self, lockfile: LockFile):
+        super().__init__(lockfile, Formatter())
 
     def log(self, message: str) -> None:
         print(message)

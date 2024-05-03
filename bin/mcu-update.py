@@ -28,7 +28,7 @@ async def mcu_update(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], 
     if name and name.lower() not in map(lambda m: m.name.lower(), qbefile.mcus):
         raise click.BadParameter(f'Unknown name {name}')
 
-    progress = CliProgress(lockfile, is_mcu=True)
+    progress = CliProgress(lockfile)
     try:
         for mcu_config in qbefile.mcus:
             lock = lockfile.mcus.always(mcu_config.name)
