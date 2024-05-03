@@ -1,5 +1,8 @@
 # QBE
 
+CLI Tool and Moonraker extension (update manager compatible) to manage your 3D printer configuration extensions and services, with rich features and automated setup helpers
+
+
 > NOTE: it assumes user has NOPASSWD sudo access
 
 ## Installation
@@ -35,13 +38,67 @@ sudo ln -sf /var/opt/qbe/bin/qbe /usr/local/bin/qbe
 
 ## Printer definition file
 
-Update `~/qbe.yml`
+Before first run, update `~/qbe.yml` according to your needs.
+
+### Packages config 
+
+In `requires` section of `qbe.yml` file you can add packages from different sources, but every one has to include (`qbe.yml` manifest file):
+- `internal` dependencies as well as 
+- `git` repo links
+- `local` path to local package directory
+
+Every kind of package may take additional option that tell qbe in which flavor / with which configuration to install a package - `options` should be provided as a key-value dictionary
+
+
+```yaml
+requires:
+  - internal: klipper # name has to match the package from ./internal-packages
+  - git: https://my.git.server/owner/project.git
+  - git: git@my.git.server:owner/project.git
+    options:
+      my_option: yellow
+      other_option: magenta
+  - local: /home/printer/package/my-package # local filesystem path
+```
+
+### MCU configuration
+
+> NOTE: currently only selected hardware configurations and canboot/katapult flashing are supported at the moment
+
+In `mcus` section of `qbe.yml` file you can define your MCUs and automatically update (build and flash) their firmware (form CLI and Moonraker), mcus can take specific `options` just like packages. For main mcu `main: true` has to be set.
+
+```yaml
+mcus:
+  Octopus:
+    main: true
+    preset: btt-octopus # base firmware preset
+    can-id: ... # required for firmware upload
+    options:
+      bitrate: 500000
+  SB:
+    preset: btt-sb2240
+    can-id: ...
+    options:
+      bitrate: 500000
+  ERCF:
+    preset: mellow-fly-ercf
+    can-id: ...
+    options:
+      bitrate: 500000
+```
+
 
 ## Run it!
 
 ```shell
+qbe refresh
 qbe update
 ```
+
+## Creating a package 
+
+Example manifests (`qbe.yml` files) files can be found in [internal-packages](internal-packages) definitions.
+
 
 # TODO
 
