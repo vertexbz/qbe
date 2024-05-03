@@ -1,4 +1,5 @@
 requires:
+  - internal: katapult
   - internal: klipper
     options:
       loader: true
@@ -8,6 +9,7 @@ requires:
       user_config: false
   - internal: mainsail
   - internal: moonraker-timelapse
+  - internal: moonraker-telegram-bot
   - internal: klipper-happy-hare
   - internal: klipper-stable-z-home
   - internal: klipper-z-calibration
@@ -15,7 +17,7 @@ requires:
     options: # limits access to configuration you will not change anyways
       loader: true
       user_config: false
-  #- internal: klipper-screen-happy-hare # didn't really test this one
+  #- internal: klipper-screen-happy-hare
   #  options: # limits access to configuration you will not change anyways
   #    loader: true
   #    user_config: false
