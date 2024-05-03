@@ -167,6 +167,3 @@ class QBEDeployer(BaseDeploy):
 
     def _save_state(self) -> None:
         pass
-
-
-# todo removal support?

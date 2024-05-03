@@ -43,10 +43,10 @@ Update `~/qbe.yml`
 qbe update
 ```
 
-If your setup requires system changes it may be worth to reboot after run
-
 # TODO
 
+* [ ] Package removal support in moonraker
+* [ ] Sync manual editing, moonraker updates and cli operations!
 * [ ] Moonraker db interactions?
 * [ ] Support multiple providers of the same type
 * [ ] Config (qbefile, manifest, lockfile?) validation

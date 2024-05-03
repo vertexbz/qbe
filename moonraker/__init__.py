@@ -35,7 +35,6 @@ class QBE:
 
         self.qbefile = load_qbefile(qbefile)
         self.lockfile = load_lockfile(for_qbe_file(self.qbefile))
-        # todo watch qbe and lock?
 
         updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, QBEPackage(self.lockfile.qbe))
         update_manager.updaters[updater.display_name] = updater
