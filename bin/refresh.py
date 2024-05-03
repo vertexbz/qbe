@@ -37,7 +37,7 @@ async def refresh(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], mcu
                 with progress.updatable(pkg) as p:
                     await pkg.refresh(progress=p)
 
-                    if lock.remote_version != lock.current_version:
+                    if lock.remote_version != lock.current_version.replace('-dirty', ''):
                         p.log(fine(f'current version {lock.current_version}, update available to {lock.remote_version}'))
                     else:
                         p.log(comment('up to date'))

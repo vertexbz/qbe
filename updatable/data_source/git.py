@@ -154,7 +154,7 @@ class GitDataSource(DataSource):
     async def get_tagged_commits(self, count: int = MAX_COMMITS):
         cnt_arg = f"--count={count} " if count > 0 else ""
         command = f"git for-each-ref {cnt_arg}--sort='-creatordate' --contains=HEAD --merged=origin/{self._branch} --format={self.GIT_REF_FMT} 'refs/tags'"
-        resp = await shell(command, cwd=self.path)
+        resp = await shell(command, cwd=self.path, raw_std=True)
 
         tagged_commits: dict[str, str] = {}
         for line in resp.split('\n'):
@@ -173,7 +173,7 @@ class GitDataSource(DataSource):
         if paths:
             command = f'{command} -- {" ".join(paths)}'
 
-        resp = await shell(command, cwd=self.path)
+        resp = await shell(command, cwd=self.path, raw_std=True)
         commits_behind: list[Commit] = []
         for log_entry in resp.split('\x1E'):
             log_entry = log_entry.strip()

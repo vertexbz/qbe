@@ -19,16 +19,21 @@ class CommandError(Exception):
 
 async def shell(
     command: str, cwd: Optional[str] = None, strip=False, env: Optional[dict] = None,
+    raw_std=False,
     stdout_callback: Optional[Callable[[str], None]] = None,
     stderr_callback: Optional[Callable[[str], None]] = None
 ):
+    computed_env = {var: os.environ[var] for var in ('HOME', 'SHELL', 'TERM') if var in os.environ}
+    if env:
+        computed_env.update(env)
+
     # Create subprocess with stdout and stderr set to PIPE
     proc = await asyncio.create_subprocess_shell(
         command,
         cwd=cwd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
-        env=env or {}
+        env=computed_env
     )
 
     # asyncio subprocess interaction based on https://docs.python.org/3/library/asyncio-subprocess.html
@@ -46,7 +51,11 @@ async def shell(
 
         # Check results of done tasks
         for fut in done:
-            result = (await fut).decode('utf-8').rstrip()
+            result = await fut
+            result = result.decode('utf-8')
+            if not raw_std:
+                result = result.rstrip()
+
             if not result:
                 continue
 
