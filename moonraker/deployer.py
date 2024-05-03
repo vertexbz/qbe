@@ -137,8 +137,8 @@ class QBEDeployer(BaseDeploy):
                 *(['Unfinished update, refresh not available'] if self._updatable.lock.status.unfinished() else []),
             ],
 
-            'repo_name': '?',  # TODO: monitor mainsail logic, maybe one day there will be a way to make it better
-            'owner': '?'
+            # TODO: monitor mainsail logic, maybe one day there will be a way to make it better
+            **({} if len(self._updatable.version.commits_behind) else {'repo_name': '?', 'owner': '?'})
         }
 
     def get_persistent_data(self):
