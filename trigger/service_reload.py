@@ -33,10 +33,18 @@ class ServiceReloadTrigger(Trigger):
             await sudo_systemctl_daemon_reload()
 
         try:
-            await sudo_systemctl_service('restart' if self.restart else 'reload', self.service)
+            await self._handle()
         except CommandError as e:
             progress.log_error(f'Service {self.service} reload failed: {e}')
 
+    async def _handle(self):
+        if self.restart:
+            await sudo_systemctl_service('restart', self.service)
+
+        try:
+            await sudo_systemctl_service('reload', self.service)
+        except CommandError:
+            await sudo_systemctl_service('restart', self.service)
 
     @classmethod
     def dedupe(cls, triggers: set[tuple[Trigger, Updatable]]) -> set[tuple[Trigger, Updatable]]:
