@@ -35,6 +35,10 @@ class ProgressRoot:
         pass
 
     @property
+    def formatter(self) -> LogFormatter:
+        return self._formatter
+
+    @property
     def triggers(self) -> set[tuple[Trigger, Updatable]]:
         return self._triggers
 
