@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import os.path
+import re
 import time
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Callable
 
 from .base import DataSource
 from ...adapter.command import shell
@@ -53,9 +54,25 @@ class GitDataSource(DataSource):
     def has_change_history(self) -> bool:
         return True
 
+    def _denoise_progress(self, out: Callable[[str], None]):
+        last_decy = 0
+        def inner(message: str):
+            nonlocal last_decy
+            if match := re.search(r'(\d+)%', message):
+                percent = int(match.group(1))
+                current_decy = percent // 10
+                if last_decy == current_decy:
+                    return
+
+                last_decy = current_decy
+
+            out(message)
+
+        return inner
+
     async def refresh(self, lock: Versioned, stdout_callback=None) -> None:
         if os.path.exists(self.path):
-            await shell(f"git fetch --prune --progress origin", cwd=self.path, stdout_callback=stdout_callback)
+            await shell(f"git fetch --prune --progress origin", cwd=self.path, stdout_callback=self._denoise_progress(stdout_callback))
 
             if not self._branch:
                 self._branch = await self.get_branch()
@@ -84,7 +101,8 @@ class GitDataSource(DataSource):
             os.mkdir(self.path)
             await shell('git init', cwd=self.path)
             await shell(f'git remote add origin {self._url}', cwd=self.path, stdout_callback=stdout_callback)
-            await shell('git fetch --progress origin', cwd=self.path, stdout_callback=stdout_callback, stderr_callback=stdout_callback)
+            denoised = self._denoise_progress(stdout_callback)
+            await shell('git fetch --progress origin', cwd=self.path, stdout_callback=denoised, stderr_callback=denoised)
             await shell(f'git checkout -b {branch}', cwd=self.path, stdout_callback=stdout_callback)
             await shell(f'git reset --hard origin/{branch}', cwd=self.path, stdout_callback=stdout_callback)
 

@@ -53,20 +53,24 @@ async def shell(
         for fut in done:
             result = await fut
             result = result.decode('utf-8')
-            if not raw_std:
-                result = result.rstrip()
 
-            if not result:
-                continue
+            if raw_std:
+                lines = [result]
+            else:
+                lines = map(lambda s: s.rstrip(), result.replace('\r', '\n').splitlines())
 
-            if fut is tasks[0]:
-                stdout.append(result)
-                if stdout_callback:
-                    stdout_callback(result)
-            elif fut is tasks[1]:
-                stderr.append(result)
-                if stderr_callback:
-                    stderr_callback(result)
+            for line in lines:
+                if not line:
+                    continue
+
+                if fut is tasks[0]:
+                    stdout.append(line)
+                    if stdout_callback:
+                        stdout_callback(line)
+                elif fut is tasks[1]:
+                    stderr.append(line)
+                    if stderr_callback:
+                        stderr_callback(line)
 
         # Cancel pending tasks
         for fut in pending:
