@@ -18,6 +18,10 @@ class InternalDataSource(DataSource):
     def package_path(self) -> str:
         return self._package_path
 
+    @property
+    def has_change_history(self) -> bool:
+        return self._data_source.has_change_history
+
     async def refresh(self, lock: Versioned, **kw) -> None:
         return await self._data_source.refresh(lock, **kw)
 
