@@ -5,7 +5,7 @@ import errno
 import logging
 import socket
 import struct
-from typing import Dict, List
+from typing import Dict, List, Optional, Callable
 
 from .flasher import CanFlasher
 from .node import CanNode
@@ -29,9 +29,10 @@ CANBUS_NODEID_OFFSET = 128
 
 
 class CanSocket:
-    def __init__(self, loop: asyncio.AbstractEventLoop, interface: str):
+    def __init__(self, loop: asyncio.AbstractEventLoop, interface: str, stdout_callback: Optional[Callable[[str], None]] = None):
         self._loop = loop
         self._interface = interface
+        self._stdout_callback = stdout_callback or noop
 
         self.cansock = socket.socket(socket.PF_CAN, socket.SOCK_RAW, socket.CAN_RAW)
         self.admin_node = CanNode(CANBUS_ID_ADMIN, self)
@@ -163,7 +164,7 @@ class CanSocket:
         self._reset_nodes()
         await asyncio.sleep(1.0)
         node = self._set_node_id(uuid)
-        flasher = CanFlasher(node, fw_path)
+        flasher = CanFlasher(node, fw_path, self._stdout_callback)
         await asyncio.sleep(.5)
         try:
             await flasher.connect_btl()
@@ -209,3 +210,7 @@ class CanSocket:
             results[data.hex()] = app
 
         return results
+
+
+def noop(*args, **kwargs):
+    pass

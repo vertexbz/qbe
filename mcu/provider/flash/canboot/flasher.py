@@ -5,6 +5,7 @@ import hashlib
 import logging
 import os
 import struct
+from typing import Callable
 
 from .crc import crc16_ccitt
 from .node import CanNode
@@ -26,7 +27,7 @@ NACK = 0xf1
 
 
 class CanFlasher:
-    def __init__(self, node: CanNode, fw_file: str) -> None:
+    def __init__(self, node: CanNode, fw_file: str, stdout_callback: Callable[[str], None]) -> None:
         self.node = node
         self.fw_name = fw_file
         self.fw_sha = hashlib.sha1()
@@ -34,29 +35,29 @@ class CanFlasher:
         self.block_size = 64
         self.block_count = 0
         self.app_start_addr = 0
+        self._stdout_callback = stdout_callback
 
     async def connect_btl(self):
-        # output_line("Attempting to connect to bootloader")
+        self._stdout_callback("Attempting to connect to bootloader")
         ret = await self.send_command('CONNECT')
         pinfo = ret[:12]
-        # mcu_type = ret[12:]
+        mcu_type = ret[12:]
         ver_bytes, start_addr, self.block_size = struct.unpack("<4sII", pinfo)
         self.app_start_addr = start_addr
-        # proto_version = ".".join([str(v) for v in reversed(ver_bytes[:3])])
+        proto_version = ".".join([str(v) for v in reversed(ver_bytes[:3])])
         if self.block_size not in [64, 128, 256, 512]:
             raise ConnectionError("Invalid Block Size: %d" % (self.block_size,))
-        # while mcu_type and mcu_type[-1] == 0x00:
-        #     mcu_type = mcu_type[:-1]
-        # mcu_type = mcu_type.decode()
-        # output_line(
-        #     f"Katapult Connected\nProtocol Version: {proto_version}\n"
-        #     f"Block Size: {self.block_size} bytes\n"
-        #     f"Application Start: 0x{self.app_start_addr:4X}\n"
-        #     f"MCU type: {mcu_type}"
-        # )
+        while mcu_type and mcu_type[-1] == 0x00:
+            mcu_type = mcu_type[:-1]
+        mcu_type = mcu_type.decode()
+
+        self._stdout_callback(f"Katapult Connected\nProtocol Version: {proto_version}")
+        self._stdout_callback(f"Block Size: {self.block_size} bytes")
+        self._stdout_callback(f"Application Start: 0x{self.app_start_addr:4X}")
+        self._stdout_callback(f"MCU type: {mcu_type}")
 
     async def verify_canbus_uuid(self, uuid):
-        # output_line("Verifying canbus connection")
+        self._stdout_callback("Verifying canbus connection")
         ret = await self.send_command('GET_CANBUS_ID')
         mcu_uuid = sum([v << ((5 - i) * 8) for i, v in enumerate(ret[:6])])
         if mcu_uuid != uuid:
@@ -146,9 +147,7 @@ class CanFlasher:
         raise ConnectionError(f"Error sending command [{cmdname}] to Can Device")
 
     async def send_file(self):
-        last_percent = 0
-        # output_line(f"Flashing '{self.fw_name}'...")
-        # output("\n[")
+        self._stdout_callback(f"Flashing '{self.fw_name}'...")
         with open(self.fw_name, 'rb') as f:
             f.seek(0, os.SEEK_END)
             self.file_size = f.tell()
@@ -158,6 +157,7 @@ class CanFlasher:
                 buf = f.read(self.block_size)
                 if not buf:
                     break
+
                 if len(buf) < self.block_size:
                     buf += b"\xFF" * (self.block_size - len(buf))
                 self.fw_sha.update(buf)
@@ -167,29 +167,20 @@ class CanFlasher:
                     recd_addr, = struct.unpack("<I", resp)
                     if recd_addr == flash_address:
                         break
-                    # logging.info(
-                    #     f"Block write mismatch: expected: {flash_address:4X}, "
-                    #     f"received: {recd_addr:4X}"
-                    # )
                     await asyncio.sleep(.1)
                 else:
                     raise ConnectionError(f"Flash write failed, block address 0x{recd_addr:4X}")
                 flash_address += self.block_size
                 self.block_count += 1
-                uploaded = self.block_count * self.block_size
-                pct = int(uploaded / float(self.file_size) * 100 + .5)
-                if pct >= last_percent + 2:
-                    last_percent += 2.
-                    # output("#")
+
+                pct = int((self.block_count * self.block_size) / float(self.file_size) * 100 + .5)
+                self._stdout_callback(f'Block {self.block_count} ({pct}%)...')
+
             await self.send_command('SEND_EOF')
-            # resp = await self.send_command('SEND_EOF')
-            # page_count, = struct.unpack("<I", resp)
-            # output_line("]\n\nWrite complete: %d pages" % (page_count))
+            self._stdout_callback(f'Flashing complete!')
 
     async def verify_file(self):
-        last_percent = 0
-        # output_line("Verifying (block count = %d)..." % (self.block_count,))
-        # output("\n[")
+        self._stdout_callback(f'Verifying uploaded firmware...')
         ver_sha = hashlib.sha1()
         for i in range(self.block_count):
             flash_address = i * self.block_size + self.app_start_addr
@@ -199,23 +190,19 @@ class CanFlasher:
                 recd_addr, = struct.unpack("<I", resp[:4])
                 if recd_addr == flash_address:
                     break
-                # logging.info(
-                #     f"Block read mismatch: expected: 0x{flash_address:4X}, "
-                #     f"received: 0x{recd_addr}"
-                # )
                 await asyncio.sleep(.1)
             else:
                 raise ConnectionError(f"Block Request Error, block: {i}")
             ver_sha.update(resp[4:])
-            pct = int(i * self.block_size / float(self.file_size) * 100 + .5)
-            if pct >= last_percent + 2:
-                last_percent += 2
-                # output("#")
+
+            pct = int((i + 1) / float(self.block_count) * 100)
+            self._stdout_callback(f'Block {i}/{self.block_count} ({pct}%)...')
+
         ver_hex = ver_sha.hexdigest().upper()
         fw_hex = self.fw_sha.hexdigest().upper()
         if ver_hex != fw_hex:
             raise ConnectionError(f"Checksum mismatch: Expected {fw_hex}, Received {ver_hex}")
-        # output_line("]\n\nVerification Complete: SHA = %s" % (ver_hex))
+        self._stdout_callback(f'Verification complete!')
 
     async def finish(self):
         await self.send_command("COMPLETE")
