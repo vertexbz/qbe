@@ -148,6 +148,7 @@ class CanFlasher:
 
     async def send_file(self):
         self._stdout_callback(f"Flashing '{self.fw_name}'...")
+        last_percent = 0
         with open(self.fw_name, 'rb') as f:
             f.seek(0, os.SEEK_END)
             self.file_size = f.tell()
@@ -174,7 +175,9 @@ class CanFlasher:
                 self.block_count += 1
 
                 pct = int((self.block_count * self.block_size) / float(self.file_size) * 100 + .5)
-                self._stdout_callback(f'Block {self.block_count} ({pct}%)...')
+                if pct // 10 != last_percent // 10:
+                    self._stdout_callback(f'Block {self.block_count} ({pct}%)...')
+                    last_percent = pct
 
             await self.send_command('SEND_EOF')
             self._stdout_callback(f'Flashing complete!')
@@ -182,6 +185,7 @@ class CanFlasher:
     async def verify_file(self):
         self._stdout_callback(f'Verifying uploaded firmware...')
         ver_sha = hashlib.sha1()
+        last_percent = 0
         for i in range(self.block_count):
             flash_address = i * self.block_size + self.app_start_addr
             for _ in range(3):
@@ -196,7 +200,9 @@ class CanFlasher:
             ver_sha.update(resp[4:])
 
             pct = int((i + 1) / float(self.block_count) * 100)
-            self._stdout_callback(f'Block {i}/{self.block_count} ({pct}%)...')
+            if pct // 10 != last_percent // 10:
+                self._stdout_callback(f'Block {i + 1}/{self.block_count} ({pct}%)...')
+                last_percent = pct
 
         ver_hex = ver_sha.hexdigest().upper()
         fw_hex = self.fw_sha.hexdigest().upper()
