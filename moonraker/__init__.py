@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os.path
 from types import MethodType
 from typing import TYPE_CHECKING
@@ -151,6 +152,9 @@ def load(config: ConfigHelper) -> QBE:
 
     update_manager._original_component_init = update_manager.component_init
     update_manager.component_init = MethodType(hooked_component_init, update_manager)
+
+    # replace full update routine
+    logging.warning(update_manager.server.moonraker_app.json_rpc.get_method('machine.update.full'))
 
     return qbe
 
