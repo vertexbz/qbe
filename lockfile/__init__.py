@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fcntl
 import os.path
 
 from .dependency import DependencyLock
@@ -29,6 +30,7 @@ def new_requires_dict(self: LockFile):
 class LockFile:
     def __init__(self, path: str):
         self._path = path
+        self._lock = FileLock(path)
 
         self._progress: list = []
         self._mcus: LockDict[str, MCULock] = new_mcu_dict(self)
@@ -76,6 +78,12 @@ class LockFile:
             requires[Identifier(id=id, type=type)] = DependencyLock.decode(v)
         self._requires = requires
 
+    def lock(self):
+        self._lock.lock()
+
+    def unlock(self):
+        self._lock.unlock()
+
 
 def load(file: str) -> LockFile:
     lock = LockFile(file)
@@ -83,4 +91,29 @@ def load(file: str) -> LockFile:
     return lock
 
 
+class FileLock:
+    def __init__(self, path: str):
+        self._path = path
+        self._count = 0
+        self._fd = None
 
+    def lock(self):
+        if not self._fd:
+            self._fd = open(self._path)
+            try:
+                fcntl.flock(self._fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except IOError:
+                raise RuntimeError('Other operation in progress')
+
+        self._count += 1
+
+    def unlock(self):
+        self._count -= 1
+        if self._count > 0:
+            return
+
+        self._count = 0
+        if self._fd:
+            fcntl.flock(self._fd, fcntl.LOCK_UN)
+            self._fd.close()
+            self._fd = None

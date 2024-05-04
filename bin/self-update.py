@@ -13,10 +13,9 @@ from ..package.qbe import QBE as QBEPackage
 @click.option('--no-refresh', '-r', 'refresh', default=True, is_flag=True)
 @pass_lockfile
 async def self_update(lockfile: LockFile, refresh: bool) -> None:
-    progress = CliProgress(lockfile)
-    pkg = QBEPackage(lockfile.qbe)
+    with CliProgress(lockfile) as progress:
+        pkg = QBEPackage(lockfile.qbe)
 
-    try:
         with progress.updatable(pkg) as p:
             if refresh is True:
                 await pkg.refresh(progress=p)
@@ -24,5 +23,3 @@ async def self_update(lockfile: LockFile, refresh: bool) -> None:
 
         for trig, updatable in progress.triggers:
             await trig.handle(progress, updatable)
-    finally:
-        lockfile.save()

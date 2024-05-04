@@ -73,3 +73,11 @@ class ProgressRoot:
     @property
     def stats_total(self) -> int:
         return len(self._known_updatables)
+
+    def __enter__(self):
+        self._lockfile.lock()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._lockfile.unlock()
+        self._lockfile.save()

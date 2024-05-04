@@ -29,9 +29,10 @@ class QBERemover(QBEDeployer):
             raise self.log_exc(f'Removal failed, {e}', False)
 
     async def _on_complete(self):
-        self._complete_with_message('Removed!')
+        self.notify_status('Removed!', is_complete=True)
         self.cmd_helper.get_updaters().pop(self.display_name, None)
-        await self.close()
+        if awaiter := self.close():
+            await awaiter
         self.cmd_helper.notify_update_refreshed()
 
     def get_update_status(self) -> Dict[str, Any]:

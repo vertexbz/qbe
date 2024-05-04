@@ -31,8 +31,7 @@ async def mcu_update(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], 
     if name and name not in map(lambda m: m.name.lower(), qbefile.mcus):
         raise click.BadParameter(f'Unknown name {name}')
 
-    progress = CliProgress(lockfile)
-    try:
+    with CliProgress(lockfile) as progress:
         for mcu_config in qbefile.mcus:
             lock = lockfile.mcus.always(mcu_config.name)
             mcu = MCU(mcu_config, lock)
@@ -49,5 +48,3 @@ async def mcu_update(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], 
         triggers = ServiceReloadTrigger.dedupe(progress.triggers)
         for trig, updatable in triggers:
             await trig.handle(progress, updatable)
-    finally:
-        lockfile.save()

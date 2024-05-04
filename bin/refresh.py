@@ -22,9 +22,7 @@ from ..qbefile import QBEFile
 @pass_lockfile
 @pass_qbefile
 async def refresh(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], mcus_only: bool) -> None:
-    progress = CliProgress(lockfile)
-
-    try:
+    with CliProgress(lockfile) as progress:
         if not mcus_only:
             for lock, pkg in packages(qbefile, lockfile):
                 if name is not None and pkg.name != name:
@@ -58,8 +56,6 @@ async def refresh(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], mcu
                         p.log(fine(f'current version {lock.current_version}, update available to {lock.remote_version}'))
                     else:
                         p.log(comment('up to date'))
-    finally:
-        lockfile.save()
 
 
 def packages(qbefile: QBEFile, lockfile: LockFile):

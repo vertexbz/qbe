@@ -68,26 +68,25 @@ class QBEDeployer(BaseDeploy):
     async def update(self) -> bool:
         self.cmd_helper.notify_update_response(f'{self.TEXT_PROCESS_STARTING} {self.display_name}...')
 
-        progress = MoonrakerProgress(self._lockfile, logger=self.notify_status)
+        with MoonrakerProgress(self._lockfile, logger=self.notify_status) as progress:
+            await self._execute(progress)
 
-        await self._execute(progress)
+            for trig, updatable in progress.triggers:
+                if isinstance(trig, GCodeTrigger):
+                    try:
+                        await self._kapis.run_gcode(trig.gcode)
+                    except:
+                        self._server.add_warning(f'Could not run G-Code, you may want to run it manually: {trig.gcode}')
+                elif isinstance(trig, ServiceReloadTrigger) and self._is_moonraker_service_trigger(trig):
+                    if trig.daemon_reload:
+                        await sudo_systemctl_daemon_reload()
 
-        for trig, updatable in progress.triggers:
-            if isinstance(trig, GCodeTrigger):
-                try:
-                    await self._kapis.run_gcode(trig.gcode)
-                except:
-                    self._server.add_warning(f'Could not run G-Code, you may want to run it manually: {trig.gcode}')
-            elif isinstance(trig, ServiceReloadTrigger) and trig.service.lower() in ('moonraker', 'moonraker.service'):
-                if trig.daemon_reload:
-                    await sudo_systemctl_daemon_reload()
+                    self.notify_status('Restarting moonraker...')
+                    self._machine.restart_moonraker_service()
+                else:
+                    await trig.handle(progress, updatable)
 
-                self.notify_status('Restarting moonraker...')
-                self._machine.restart_moonraker_service()
-            else:
-                await trig.handle(progress, updatable)
-
-        await self._on_complete()
+            await self._on_complete()
         return True
 
     async def recover(self, hard: bool = False, force_dep_update: bool = False) -> None:
@@ -167,10 +166,9 @@ class QBEDeployer(BaseDeploy):
     def _save_state(self) -> None:
         pass
 
-    def _complete_with_message(self, message: str):
-        self.notify_status('Saving the lockfile...')
-        self._lockfile.save()
-        self.notify_status(message, is_complete=True)
+    @staticmethod
+    def _is_moonraker_service_trigger(trigger: ServiceReloadTrigger) -> bool:
+        return trigger.service.lower() in ('moonraker', 'moonraker.service')
 
     async def _execute(self, progress):
         try:
@@ -180,4 +178,4 @@ class QBEDeployer(BaseDeploy):
             raise self.log_exc(f'Update failed, {e}', False)
 
     async def _on_complete(self):
-        self._complete_with_message('Update Finished!')
+        self.notify_status('Update Finished!', is_complete=True)

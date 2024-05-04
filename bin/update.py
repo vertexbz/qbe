@@ -21,60 +21,57 @@ from ..trigger.service_reload import ServiceReloadTrigger
 @pass_lockfile
 @pass_qbefile
 async def update(qbefile: QBEFile, lockfile: LockFile, name: Optional[str], remove_only: bool) -> None:
-    progress = CliProgress(lockfile)
+    with CliProgress(lockfile) as progress:
+        processed_identifiers = set()
+        try:
+            for dep in qbefile.requires:
+                processed_identifiers.add(dep.identifier)
+                if remove_only:
+                    continue
 
-    processed_identifiers = set()
-    try:
-        for dep in qbefile.requires:
-            processed_identifiers.add(dep.identifier)
-            if remove_only:
-                continue
+                pkg = build_package(dep, lockfile.requires.always(dep.identifier))
+                if name is not None and pkg.name != name:
+                    continue
 
-            pkg = build_package(dep, lockfile.requires.always(dep.identifier))
-            if name is not None and pkg.name != name:
-                continue
+                with progress.updatable(pkg) as p:
+                    await pkg.update(progress=p)
 
-            with progress.updatable(pkg) as p:
-                await pkg.update(progress=p)
+            for identifier, lock in lockfile.requires.difference(processed_identifiers).items():
+                pkg = build_package(from_lock(identifier, lock), lock)
+                if name is not None and pkg.name != name:
+                    continue
 
-        for identifier, lock in lockfile.requires.difference(processed_identifiers).items():
-            pkg = build_package(from_lock(identifier, lock), lock)
-            if name is not None and pkg.name != name:
-                continue
+                with progress.updatable(pkg) as p:
+                    await pkg.remove(progress=p)
 
-            with progress.updatable(pkg) as p:
-                await pkg.remove(progress=p)
+            triggers = ServiceReloadTrigger.dedupe(progress.triggers)
+            for trig, updatable in triggers:
+                await trig.handle(progress, updatable)
+        finally:
+            installed = progress.stats_installed
+            updated = progress.stats_updated
+            removed = progress.stats_removed
+            unchanged = progress.stats_total - (installed + updated + removed)
 
-        triggers = ServiceReloadTrigger.dedupe(progress.triggers)
-        for trig, updatable in triggers:
-            await trig.handle(progress, updatable)
-    finally:
-        lockfile.save()
-
-        installed = progress.stats_installed
-        updated = progress.stats_updated
-        removed = progress.stats_removed
-        unchanged = progress.stats_total - (installed + updated + removed)
-
-        print()
-        print(''.join([
-            '[',
-            cs('Installed', installed > 0, {'fg': 'bright_green'}, {}), ' ',
-            cs(str(installed), installed > 0, {'fg': 'bright_green'}, {'dim': True}),
-            '] ',
-            '[',
-            cs('Updated', updated > 0, {'fg': 'green'}, {}), ' ',
-            cs(str(updated), updated > 0, {'fg': 'green'}, {'dim': True}),
-            '] ',
-            '[',
-            cs('Removed', removed > 0, {'fg': 'red'}, {}), ' ',
-            cs(str(removed), removed > 0, {'fg': 'red'}, {'dim': True}),
-            '] ',
-            '[',
-            cs('Unchanged', unchanged > 0, {'fg': 'blue'}, {}), ' ',
-            cs(str(unchanged), unchanged > 0, {'fg': 'blue'}, {'dim': True}),
-            ']'
-        ]))
+            print()
+            print(''.join([
+                '[',
+                cs('Installed', installed > 0, {'fg': 'bright_green'}, {}), ' ',
+                cs(str(installed), installed > 0, {'fg': 'bright_green'}, {'dim': True}),
+                '] ',
+                '[',
+                cs('Updated', updated > 0, {'fg': 'green'}, {}), ' ',
+                cs(str(updated), updated > 0, {'fg': 'green'}, {'dim': True}),
+                '] ',
+                '[',
+                cs('Removed', removed > 0, {'fg': 'red'}, {}), ' ',
+                cs(str(removed), removed > 0, {'fg': 'red'}, {'dim': True}),
+                '] ',
+                '[',
+                cs('Unchanged', unchanged > 0, {'fg': 'blue'}, {}), ' ',
+                cs(str(unchanged), unchanged > 0, {'fg': 'blue'}, {'dim': True}),
+                ']'
+            ]))
 
 
 def cs(message: str, condition: bool, true_style: dict, false_style: dict) -> str:
