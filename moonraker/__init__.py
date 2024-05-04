@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import os.path
 from types import MethodType
 from typing import TYPE_CHECKING
@@ -22,6 +21,7 @@ if TYPE_CHECKING:
     from confighelper import ConfigHelper
     from components.klippy_apis import KlippyAPI as APIComp
     from components.update_manager.update_manager import UpdateManager
+    from common import WebRequest
 
 
 class QBE:
@@ -133,6 +133,32 @@ async def hooked_update_klipper_repo(*_) -> None:
     pass
 
 
+async def hooked_handle_full_update_request(self: UpdateManager, web_request: WebRequest) -> str:
+    async with self.cmd_request_lock:
+        app_name = ""
+        self.cmd_helper.set_update_info('full', id(web_request))
+        self.cmd_helper.notify_update_response("Preparing full software update...")
+        try:
+            # Perform system updates
+            if 'system' in self.updaters:
+                app_name = 'system'
+                await self.updaters['system'].update()
+
+            # Update clients
+            for name, updater in self.updaters.items():
+                app_name = name
+                await updater.update()
+
+            self.cmd_helper.set_full_complete(True)
+            self.cmd_helper.notify_update_response("Full Update Complete", is_complete=True)
+        except Exception as e:
+            self.cmd_helper.set_full_complete(True)
+            self.cmd_helper.notify_update_response(f"Error updating {app_name}: {e}", is_complete=True)
+        finally:
+            self.cmd_helper.clear_update_info()
+        return "ok"
+
+
 def load(config: ConfigHelper) -> QBE:
     server = config.get_server()
     update_manager: UpdateManager = server.load_component(config, 'update_manager')
@@ -154,7 +180,9 @@ def load(config: ConfigHelper) -> QBE:
     update_manager.component_init = MethodType(hooked_component_init, update_manager)
 
     # replace full update routine
-    logging.warning(update_manager.server.moonraker_app.json_rpc.get_method('machine.update.full'))
+    api_def = update_manager.server.moonraker_app.json_rpc.get_method('machine.update.full')
+    cb = update_manager._handle_full_update_request = MethodType(hooked_handle_full_update_request, update_manager)
+    object.__setattr__(api_def, 'callback', cb)
 
     return qbe
 
