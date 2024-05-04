@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Any
 
 from .deployer import QBEDeployer
+from ..adapter.dataclass import encode
 from ..updatable.data_source.git import TaggedCommit
 
 if TYPE_CHECKING:
@@ -42,10 +43,10 @@ class QBERemover(QBEDeployer):
             'pristine': True,
 
             'commits_behind': [
-                TaggedCommit(
+                encode(TaggedCommit(
                     sha='removing', author='QBE', date='now', tag=None,
                     subject='Removal', message='Package will be removed'
-                )
+                ))
             ],
             'commits_behind_count': 1,
             'remote_version': '?',
