@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 
 
 class QBEDeployer(BaseDeploy):
+    TEXT_PROCESS_STARTING = 'Updating'
+
     def __init__(self, server: Server, lockfile: LockFile, cmd_helper: CommandHelper, updatable: Updatable) -> None:
         mocked_config = MockedConfig(server, {})
         super().__init__(
@@ -34,6 +36,7 @@ class QBEDeployer(BaseDeploy):
             prefix="QBE Package",
             cfg_hash='fake'
         )
+        self._server: Server = server
         self._machine: Machine = server.lookup_component("machine")
         self._kapis: APIComp = server.lookup_component('klippy_apis')
         self._lockfile = lockfile
@@ -57,26 +60,24 @@ class QBEDeployer(BaseDeploy):
         return {}
 
     async def refresh(self) -> None:
-        if self._updatable._lock.status.unfinished():
+        if self._updatable.lock.status.unfinished():
             return
         await self._updatable.refresh()
         self._lockfile.save()
 
     async def update(self) -> bool:
-        self.cmd_helper.notify_update_response(f'Updating {self.display_name}...')
+        self.cmd_helper.notify_update_response(f'{self.TEXT_PROCESS_STARTING} {self.display_name}...')
 
         progress = MoonrakerProgress(self._lockfile, logger=self.notify_status)
 
-        try:
-            with progress.updatable(self._updatable) as p:
-                await self._updatable.update(p)
-        except Exception as e:
-            raise self.log_exc(f'Update failed, {e}', False)
+        await self._execute(progress)
 
         for trig, updatable in progress.triggers:
             if isinstance(trig, GCodeTrigger):
-                # TODO if klipper not available queue commands?
-                await self._kapis.run_gcode(trig.gcode)
+                try:
+                    await self._kapis.run_gcode(trig.gcode)
+                except:
+                    self._server.add_warning(f'Could not run G-Code, you may want to run it manually: {trig.gcode}')
             elif isinstance(trig, ServiceReloadTrigger) and trig.service.lower() in ('moonraker', 'moonraker.service'):
                 if trig.daemon_reload:
                     await sudo_systemctl_daemon_reload()
@@ -86,9 +87,7 @@ class QBEDeployer(BaseDeploy):
             else:
                 await trig.handle(progress, updatable)
 
-        self.notify_status('Saving the lockfile...')
-        self._lockfile.save()
-        self.notify_status('Update Finished!', is_complete=True)
+        await self._on_complete()
         return True
 
     async def recover(self, hard: bool = False, force_dep_update: bool = False) -> None:
@@ -167,3 +166,18 @@ class QBEDeployer(BaseDeploy):
 
     def _save_state(self) -> None:
         pass
+
+    def _complete_with_message(self, message: str):
+        self.notify_status('Saving the lockfile...')
+        self._lockfile.save()
+        self.notify_status(message, is_complete=True)
+
+    async def _execute(self, progress):
+        try:
+            with progress.updatable(self._updatable) as p:
+                await self._updatable.update(p)
+        except Exception as e:
+            raise self.log_exc(f'Update failed, {e}', False)
+
+    async def _on_complete(self):
+        self._complete_with_message('Update Finished!')

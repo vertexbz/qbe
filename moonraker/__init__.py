@@ -5,6 +5,7 @@ from types import MethodType
 from typing import TYPE_CHECKING
 
 from .deployer import QBEDeployer
+from .remover import QBERemover
 from .utils import symlink, register_directory, is_mcu_key
 from ..lockfile import load as load_lockfile
 from ..lockfile.utils import for_qbe_file
@@ -13,6 +14,7 @@ from ..package import build as build_package
 from ..package.qbe import QBE as QBEPackage
 from ..paths import paths
 from ..qbefile import load as load_qbefile
+from ..qbefile.dependency import from_lock
 from ..qbefile.utils import find_in
 
 if TYPE_CHECKING:
@@ -23,8 +25,6 @@ if TYPE_CHECKING:
 
 class QBE:
     def __init__(self, config: ConfigHelper) -> None:
-        self.updaters = []
-
         self.server = config.get_server()
         update_manager: UpdateManager = self.server.lookup_component('update_manager')
 
@@ -38,21 +38,25 @@ class QBE:
 
         updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, QBEPackage(self.lockfile.qbe))
         update_manager.updaters[updater.display_name] = updater
-        self.updaters.append(updater)
 
+        processed_identifiers = set()
         for dep in self.qbefile.requires:
+            processed_identifiers.add(dep.identifier)
             lock = self.lockfile.requires.always(dep.identifier)
             pkg = build_package(dep, lock)
             updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, pkg)
             update_manager.updaters[updater.display_name] = updater
-            self.updaters.append(updater)
 
         for mcu_config in self.qbefile.mcus:
             lock = self.lockfile.mcus.always(mcu_config.name)
             mcu = MCU(mcu_config, lock)
             updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, mcu)
             update_manager.updaters[updater.display_name] = updater
-            self.updaters.append(updater)
+
+        for identifier, lock in self.lockfile.requires.difference(processed_identifiers).items():
+            pkg = build_package(from_lock(identifier, lock), lock)
+            updater = QBERemover(self.server, self.lockfile, update_manager.cmd_helper, pkg)
+            update_manager.updaters[updater.display_name] = updater
 
         self.lockfile.save()
         self.init_qbe_views(qbefile)
@@ -134,8 +138,7 @@ def load(config: ConfigHelper) -> QBE:
     update_manager._update_klipper_repo = MethodType(hooked_update_klipper_repo, update_manager)
 
     # remove default entries
-    update_manager.updaters.pop('klipper', None)
-    update_manager.updaters.pop('moonraker', None)
+    update_manager.updaters.clear()
 
     # instantiate the extension
     qbe = QBE(config)
