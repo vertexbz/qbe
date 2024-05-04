@@ -180,9 +180,9 @@ def load(config: ConfigHelper) -> QBE:
     update_manager.component_init = MethodType(hooked_component_init, update_manager)
 
     # replace full update routine
-    api_def = update_manager.server.moonraker_app.json_rpc.get_method('machine.update.full')
-    cb = update_manager._handle_full_update_request = MethodType(hooked_handle_full_update_request, update_manager)
-    object.__setattr__(api_def, 'callback', cb)
+    if type_and_api_def := update_manager.server.moonraker_app.json_rpc.get_method('machine.update.full'):
+        cb = update_manager._handle_full_update_request = MethodType(hooked_handle_full_update_request, update_manager)
+        object.__setattr__(type_and_api_def[1], 'callback', cb)
 
     return qbe
 

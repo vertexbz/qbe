@@ -80,7 +80,7 @@ class FirmwareProvider(Provider[FirmwareConfig]):
 
     @staticmethod
     def _cleanup(progress: IProviderProgress, entries: set[Entry]):
-        for entry in entries:
+        for entry in list(entries):
             with progress.sub(os.path.basename(entry.output), case=True) as p:
                 if os.path.exists(entry.output):
                     os.unlink(entry.output)

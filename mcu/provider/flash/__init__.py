@@ -39,7 +39,7 @@ class FlashProvider(Provider[FlashConfig]):
         return inner
 
     async def apply(self, progress: IProviderProgress):
-        for entry in progress.provided:
+        for entry in list(progress.provided):
             progress.forget(entry)
 
         short_path = self._config.firmware_path
