@@ -89,7 +89,7 @@ requires:
 
 ### MCU configuration
 
-> NOTE: currently only selected hardware configurations and canboot/katapult flashing are supported at the moment
+> NOTE: currently only selected hardware configurations and canboot/katapult flashing are supported at the moment, but you can ad your own into [mcus](mcus) directory
 
 In `mcus` section of `qbe.yml` file you can define your MCUs and automatically update (build and flash) their firmware (form CLI and Moonraker), mcus can take specific `options` just like packages. For main mcu `main: true` has to be set.
 
