@@ -160,7 +160,7 @@ async def hooked_handle_full_update_request(self: UpdateManager, web_request: We
         return "ok"
 
 
-async def hooked_parse_upload_args(self, upload_args: dict[str, Any]) -> dict[str, Any]:
+def hooked_parse_upload_args(self, upload_args: dict[str, Any]) -> dict[str, Any]:
     if 'root' in upload_args and upload_args['root'].startswith('QBE :: '):
         upload_args['root'] = NoLowerString(upload_args['root'])
 
