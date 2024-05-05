@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import os.path
 from types import MethodType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .deployer import QBEDeployer
 from .remover import QBERemover
-from .utils import symlink, register_directory, is_mcu_key
+from .utils import symlink, register_directory, is_mcu_key, NoLowerString
 from ..lockfile import load as load_lockfile
 from ..lockfile.utils import for_qbe_file
 from ..mcu import MCU
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from confighelper import ConfigHelper
     from components.klippy_apis import KlippyAPI as APIComp
     from components.update_manager.update_manager import UpdateManager
+    from components.file_manager.file_manager import FileManager
     from common import WebRequest
 
 
@@ -159,12 +160,22 @@ async def hooked_handle_full_update_request(self: UpdateManager, web_request: We
         return "ok"
 
 
+async def hooked_parse_upload_args(self, upload_args: dict[str, Any]) -> dict[str, Any]:
+    if 'root' in upload_args and upload_args['root'].startswith('QBE :: '):
+        upload_args['root'] = NoLowerString(upload_args['root'])
+
+    return self._original_parse_upload_args(upload_args)
+
+
 def load(config: ConfigHelper) -> QBE:
     server = config.get_server()
+    file_manager: FileManager = server.load_component(config, 'file_manager')
     update_manager: UpdateManager = server.load_component(config, 'update_manager')
+
+    # hook UpdateManager._update_klipper_repo
     update_manager._update_klipper_repo = MethodType(hooked_update_klipper_repo, update_manager)
 
-    # remove default entries
+    # remove default UpdateManager entries
     update_manager.updaters.clear()
 
     # instantiate the extension
@@ -179,10 +190,14 @@ def load(config: ConfigHelper) -> QBE:
     update_manager._original_component_init = update_manager.component_init
     update_manager.component_init = MethodType(hooked_component_init, update_manager)
 
-    # replace full update routine
+    # hook UpdateManager._handle_full_update_request
     if type_and_api_def := update_manager.server.moonraker_app.json_rpc.get_method('machine.update.full'):
         cb = update_manager._handle_full_update_request = MethodType(hooked_handle_full_update_request, update_manager)
         object.__setattr__(type_and_api_def[1], 'callback', cb)
+
+    # hook FileManager._parse_upload_args
+    file_manager._original_parse_upload_args = file_manager._parse_upload_args
+    file_manager._parse_upload_args = MethodType(hooked_parse_upload_args, file_manager)
 
     return qbe
 

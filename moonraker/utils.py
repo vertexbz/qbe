@@ -9,6 +9,11 @@ if TYPE_CHECKING:
     from components.file_manager.file_manager import FileManager
 
 
+class NoLowerString(str):
+    def lower(self):
+        return self
+
+
 def register_directory(server: Server, name: str, path: str, full_access=False) -> None:
     file_manager: FileManager = server.lookup_component('file_manager')
     file_manager.register_directory(name, path, full_access)
