@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
 
 from . import provider
@@ -23,3 +24,6 @@ class MoonrakerExtensionProvider(OperationMixin[LinkConfig]):
     async def remove(self, progress: IProviderProgress):
         if await self.remove_operations(progress):
             progress.notify(ServiceReloadTrigger('moonraker.service', restart=True))
+
+    def _sub_name(self, operation, source: str, target: str):
+        return f'{self._short_path(operation.source, source, True)} -> {os.path.basename(target)}'

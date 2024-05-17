@@ -26,3 +26,7 @@ class GitDependency(Dependency):
     @cached_property
     def data_source(self) -> ManifestDataSource:
         return GitDataSource(url=self.identifier.id, branch=self.branch)
+
+    def update(self, source: GitDependency) -> None:
+        super().update(source)
+        self._branch = source._branch

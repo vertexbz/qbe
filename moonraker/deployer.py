@@ -42,19 +42,23 @@ class QBEDeployer(BaseDeploy):
         self._lockfile = lockfile
         self._updatable = updatable
 
-    @property
-    def display_name(self):
+    @classmethod
+    def build_display_name(cls, updatable: Updatable):
         words = []
-        for part in re.split('[-_ ]+', self._updatable.name):
+        for part in re.split('[-_ ]+', updatable.name):
             words.append(nice_names.get(part.strip().capitalize()))
 
         name = ' '.join(words)
 
-        updatable_type = self._updatable.type
+        updatable_type = updatable.type
         if updatable_type is None:
             return name
 
         return f'{updatable_type.capitalize()} :: {name}'
+
+    @property
+    def display_name(self):
+        return self.build_display_name(self._updatable)
 
     async def initialize(self):
         return {}

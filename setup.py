@@ -10,7 +10,7 @@ setup(
         'qbe': os.path.dirname(__file__)
     },
     install_requires=[
-        'Click', 'jinja2', 'dc-schema', 'requests', 'pyaml', 'tabulate', 'psutil', 'typing_extensions'
+        'Click', 'jinja2', 'dc-schema', 'requests', 'pyaml', 'tabulate', 'psutil', 'typing_extensions', 'inotify_simple'
     ],
     include_package_data=True,
     entry_points={

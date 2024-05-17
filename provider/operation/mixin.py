@@ -4,12 +4,13 @@ from abc import ABC
 from asyncio import iscoroutine
 from dataclasses import fields, dataclass
 import os
-from typing import TYPE_CHECKING, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Optional, TypeVar
 
 from .. import Provider
 from ..base import Config
 from ...adapter.command import shell
-from ...adapter.yaml import VarTag
+from ...adapter.yaml import VarTag, PkgTag
+from ...paths import paths
 from ...updatable.progress.formatter import MessageType
 
 if TYPE_CHECKING:
@@ -39,19 +40,10 @@ class OperationMixin(Provider[T], ABC):
                         if not operation.available(self._updatable.options):
                             continue
 
-                        op_target = self._target_path(operation.target)
-                        with p.sub(op_target, case=True) as pp:
-                            source = self._src_path(operation.source)
+                        source = self._src_path(operation.source)
+                        destination = self._target_path(field, operation, target, link_target)
 
-                            target_dir = target
-                            if field.metadata.get('link_target', False) and link_target:
-                                target_dir = link_target
-
-                            if isinstance(operation.target, VarTag):
-                                destination = op_target
-                            else:
-                                destination = os.path.join(target_dir, op_target)
-
+                        with p.sub(self._sub_name(operation, source, destination), case=True) as pp:
                             exists = os.path.exists(destination)
                             result = handler(source, destination, self._updatable.template_context())
                             if iscoroutine(result):
@@ -114,11 +106,26 @@ class OperationMixin(Provider[T], ABC):
     def _config_fields(self):
         return fields(self._config) if self._config else fields(self.CONFIG)
 
-    def _target_path(self, op_target: Union[str, VarTag]):
-        if isinstance(op_target, VarTag):
-            tmp = op_target.in_dict(self._updatable.template_context())
-            if not isinstance(tmp, str):
-                raise ValueError('invalid variable ' + op_target.variable)
-            return tmp
+    def _target_path(self, field, operation, target: str, link_target: Optional[str] = None):
+        op_target = self._dst_path(operation.target)
+        if isinstance(operation.target, VarTag):
+            return op_target
 
-        return op_target
+        is_link_target = field.metadata.get('link_target', False) and link_target
+        target_dir = link_target if is_link_target else target
+        return os.path.join(target_dir, op_target)
+
+    def _short_path(self, op_path, path, is_source=False):
+        if isinstance(op_path, VarTag):
+            return path.removeprefix(f'{paths.config_root}/')
+
+        if is_source:
+            if isinstance(op_path, PkgTag):
+                return f'<internal>/{op_path.path}'
+
+            return f'<package>/{op_path}'
+
+        return path.removeprefix(f'{paths.config_root}/')
+
+    def _sub_name(self, operation, source: str, target: str):
+        return f'{self._short_path(operation.source, source, True)} -> {self._short_path(operation.target, target)}'

@@ -128,10 +128,9 @@ Example manifests (`qbe.yml` files) files can be found in [internal-packages](in
 
 # TODO
 
-* [ ] Sync manual editing, moonraker updates and cli operations!
 * [ ] Moonraker db interactions?
 * [ ] Support multiple providers of the same type
 * [ ] Config (qbefile, manifest, lockfile?) validation
 * [ ] More info in cli status
-* [ ] Nice Moonraker sudo
+* [ ] Moonraker sudo
 * [ ] Docs
