@@ -14,7 +14,8 @@ class Provided(CustomEncode):
         self._data = {}
 
     def custom_encode(self) -> dict:
-        return {k: encode(v) for k, v in self._data.items()}
+        data = {k: encode(v) for k, v in self._data.items()}
+        return {k: v for k, v in data.items() if v}
 
     def by(self, provider: Provider) -> ProviderProvided:
         if provider.DISCRIMINATOR not in self._data:

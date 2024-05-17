@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import fcntl
 import os.path
 
 from .dependency import DependencyLock
@@ -8,46 +7,38 @@ from .lock_dict import LockDict
 from .mcu import MCULock
 from .qbe import QBELock
 from ..adapter.dataclass import encode
-from ..adapter.file import readfile, writefile
+from ..adapter.file import readfile, writefile, FileLock
 from ..adapter.yaml import load as load_yaml, dump as dump_yaml
 from ..updatable.identifier import Identifier
 
-
-def new_mcu_dict(self: LockFile):
-    return LockDict(
-        self, key_type=str,
-        value_constructor=lambda _: MCULock(),
-    )
-
-
-def new_requires_dict(self: LockFile):
-    return LockDict(
-        self, key_type=Identifier,
-        value_constructor=lambda _: DependencyLock(),
-    )
+RequiresDict = LockDict[Identifier, DependencyLock]
+MCUsDict = LockDict[str, MCULock]
 
 
 class LockFile:
-    def __init__(self, path: str):
+    def __init__(self, path: str, qbe: QBELock, requires: RequiresDict, mcus: MCUsDict):
         self._path = path
         self._lock = FileLock(path)
 
-        self._progress: list = []
-        self._mcus: LockDict[str, MCULock] = new_mcu_dict(self)
-        self._qbe = QBELock.decode({})
-        self._requires: LockDict[Identifier, DependencyLock] = new_requires_dict(self)
+        self._qbe = qbe
+        self._requires = requires
+        self._mcus = mcus
 
     @property
-    def mcus(self) -> LockDict[str, MCULock]:
-        return self._mcus
+    def path(self) -> str:
+        return self._path
 
     @property
     def qbe(self) -> QBELock:
         return self._qbe
 
     @property
-    def requires(self) -> LockDict[Identifier, DependencyLock]:
+    def requires(self) -> RequiresDict:
         return self._requires
+
+    @property
+    def mcus(self) -> MCUsDict:
+        return self._mcus
 
     def save(self):
         writefile(self._path, dump_yaml({
@@ -56,64 +47,66 @@ class LockFile:
             'requires': self._requires.to_dict()
         }, None, default_flow_style=False))
 
-    def load(self):
-        if not os.path.exists(self._path):
-            self.save()
-            return
+    @classmethod
+    def _identify_requires_dict(cls, requires: dict) -> dict[Identifier, dict]:
+        result = dict()
+        for k, v in requires.items():
+            typ, id = k.split('#', maxsplit=1)
+            result[Identifier(id=id, type=typ)] = v
 
-        data = load_yaml(readfile(self._path))
+        return result
 
-        self._progress = [v for v in data.pop('progress', [])]
+    @classmethod
+    def load(cls, path: str) -> LockFile:
+        requires = LockDict(key_type=Identifier, value_constructor=lambda _: DependencyLock())
+        mcus = LockDict(key_type=str, value_constructor=lambda _: MCULock())
+        qbe = QBELock()
 
-        mcus = new_mcu_dict(self)
-        for k, v in data.pop('mcus', {}).items():
-            mcus[k] = MCULock.decode(v)
-        self._mcus = mcus
+        try:
+            data = load_yaml(readfile(path))
 
-        self._qbe = QBELock.decode(data.pop('qbe', {}))
+            for k, v in cls._identify_requires_dict(data.pop('requires', {})).items():
+                requires[k] = DependencyLock.decode(v)
 
-        requires = new_requires_dict(self)
-        for k, v in data.pop('requires', {}).items():
-            type, id = k.split('#', maxsplit=1)
-            requires[Identifier(id=id, type=type)] = DependencyLock.decode(v)
-        self._requires = requires
+            for k, v in data.pop('mcus', {}).items():
+                mcus[k] = MCULock.decode(v)
+
+            qbe = QBELock.decode(data.pop('qbe', {}))
+        except FileNotFoundError:
+            pass
+        finally:
+            result = cls(path, qbe=qbe, mcus=mcus, requires=requires)
+            if not os.path.exists(path):
+                result.save()
+
+        return result
 
     def lock(self):
         self._lock.lock()
 
     def unlock(self):
         self._lock.unlock()
+        
+    def update(self):
+        data = load_yaml(readfile(self.path))
+        self._qbe.update(data.pop('qbe', {}))
 
+        current_packages = set(self._requires.keys())
+        for id, d in self._identify_requires_dict(data.pop('requires', {})).items():
+            if id not in current_packages:
+                self._requires[id] = DependencyLock.decode(d)
+            else:
+                current_packages.remove(id)
+                self._requires[id].update(d)
+        for id in current_packages:
+            del self._requires[id]
 
-def load(file: str) -> LockFile:
-    lock = LockFile(file)
-    lock.load()
-    return lock
-
-
-class FileLock:
-    def __init__(self, path: str):
-        self._path = path
-        self._count = 0
-        self._fd = None
-
-    def lock(self):
-        if not self._fd:
-            self._fd = open(self._path)
-            try:
-                fcntl.flock(self._fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except IOError:
-                raise RuntimeError('Other operation in progress')
-
-        self._count += 1
-
-    def unlock(self):
-        self._count -= 1
-        if self._count > 0:
-            return
-
-        self._count = 0
-        if self._fd:
-            fcntl.flock(self._fd, fcntl.LOCK_UN)
-            self._fd.close()
-            self._fd = None
+        current_mcus = set(self._mcus.keys())
+        for name, d in data.pop('mcus', {}).items():
+            if name not in self._mcus:
+                self._mcus[name] = MCULock.decode(d)
+            else:
+                current_mcus.remove(name)
+                self._mcus[name].update(d)
+        for name in current_mcus:
+            del self._mcus[name]

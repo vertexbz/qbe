@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Type, TypeVar, Callable
+from typing import Optional, Type, TypeVar, Callable
 
 from ..adapter.dataclass import encode
-
-if TYPE_CHECKING:
-    from . import LockFile
 
 T = TypeVar('T')
 K = TypeVar('K')
@@ -13,11 +10,10 @@ K = TypeVar('K')
 
 class LockDict(dict[K, T]):
     def __init__(
-        self, lock: LockFile, key_type: Optional[Type[K]] = None,
+        self, key_type: Optional[Type[K]] = None,
         value_constructor: Optional[Callable[[K], T]] = None
     ):
         super().__init__()
-        self._lock = lock
         self._key_type = key_type
         self._value_constructor = value_constructor
 
@@ -33,8 +29,12 @@ class LockDict(dict[K, T]):
         self._check_key(key)
         return super().__getitem__(key)
 
-    def __delitem__(self, __key):
-        super().__delitem__(__key)
+    def __delitem__(self, key: K):
+        self._check_key(key)
+        try:
+            super().__delitem__(key)
+        except KeyError:
+            pass
 
     def always(self, key: K) -> T:
         self._check_key(key)

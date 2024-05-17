@@ -4,10 +4,14 @@ import os.path
 from types import MethodType
 from typing import TYPE_CHECKING, Any
 
+from inotify_simple import Event
+
+from .blind_proxy import BlindProxy
 from .deployer import QBEDeployer
 from .remover import QBERemover
 from .utils import symlink, register_directory, is_mcu_key, NoLowerString
-from ..lockfile import load as load_lockfile
+from .watcher import Watcher
+from ..lockfile import LockFile
 from ..lockfile.utils import for_qbe_file
 from ..mcu import MCU
 from ..package import build as build_package
@@ -28,30 +32,38 @@ if TYPE_CHECKING:
 class QBE:
     def __init__(self, config: ConfigHelper) -> None:
         self.server = config.get_server()
+
+        # Register handlers
+        self.server.register_event_handler('server:klippy_ready', self._klippy_ready)
+
+        # Load config
+        qbefile_path = config.get('qbefile', None) or find_in(paths.config_root)
+
+        # Load qbe and lock file
+        self.qbefile = load_qbefile(qbefile_path)
+        self.qbe_watch = Watcher(self.server.event_loop, self.qbefile.path, self._update_packages)
+
+        lockfile = LockFile.load(for_qbe_file(self.qbefile))
+        self.lock_watch = Watcher(self.server.event_loop, lockfile.path, self._update_packages)
+        self.lockfile = BlindProxy(lockfile, self.lock_watch)
+
+        # Init file manager dirs
+        self.init_qbe_views(self.qbefile.path)
+
+        # Load qbe and lock file
         update_manager: UpdateManager = self.server.lookup_component('update_manager')
-
-        self.server.register_event_handler("update_manager:update_refreshed", self._post_refresh)
-
-        qbefile = config.get('qbefile', None)
-        qbefile = qbefile if qbefile else find_in(paths.config_root)
-
-        self.qbefile = load_qbefile(qbefile)
-        self.lockfile = load_lockfile(for_qbe_file(self.qbefile))
-
         updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, QBEPackage(self.lockfile.qbe))
         update_manager.updaters[updater.display_name] = updater
 
         processed_identifiers = set()
         for dep in self.qbefile.requires:
             processed_identifiers.add(dep.identifier)
-            lock = self.lockfile.requires.always(dep.identifier)
-            pkg = build_package(dep, lock)
+            pkg = build_package(dep, self.lockfile.requires.always(dep.identifier))
             updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, pkg)
             update_manager.updaters[updater.display_name] = updater
 
         for mcu_config in self.qbefile.mcus:
-            lock = self.lockfile.mcus.always(mcu_config.name)
-            mcu = MCU(mcu_config, lock)
+            mcu = MCU(mcu_config, self.lockfile.mcus.always(mcu_config.name))
             updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, mcu)
             update_manager.updaters[updater.display_name] = updater
 
@@ -60,16 +72,45 @@ class QBE:
             updater = QBERemover(self.server, self.lockfile, update_manager.cmd_helper, pkg)
             update_manager.updaters[updater.display_name] = updater
 
-        self.lockfile.save()
-        self.init_qbe_views(qbefile)
+    async def _update_packages(self, _: Event):
+        update_manager: UpdateManager = self.server.lookup_component('update_manager')
 
-        self.server.register_event_handler('server:klippy_ready', self._klippy_ready)
+        try:
+            updates = self.qbefile.update()
+            self.lockfile.update()
+        except Exception as e:
+            self.server.add_warning(f'Failed reloading qbe/lock file\n{e}')
+        else:
+            for dep in updates.added.packages:
+                pkg = build_package(dep, self.lockfile.requires.always(dep.identifier))
+                updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, pkg)
+                update_manager.updaters[updater.display_name] = updater
+                await updater.initialize()
+
+            for mcu_config in updates.added.mcus:
+                mcu = MCU(mcu_config, self.lockfile.mcus.always(mcu_config.name))
+                updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, mcu)
+                update_manager.updaters[updater.display_name] = updater
+                await updater.initialize()
+
+            for dep in updates.removed.packages:
+                updater: QBEDeployer = update_manager.updaters.pop(QBEDeployer.build_display_name(dep))  # type: ignore
+                if awaiter := updater.close():
+                    await awaiter
+
+            for mcu in updates.removed.mcus:
+                updater: QBEDeployer = update_manager.updaters.pop(QBEDeployer.build_display_name(mcu))  # type: ignore
+                if awaiter := updater.close():
+                    await awaiter
+
+            update_manager.cmd_helper.notify_update_refreshed()
 
     async def component_init(self) -> None:
         pass
 
     async def close(self) -> None:
-        pass
+        self.qbe_watch.close()
+        self.lock_watch.close()
 
     async def _klippy_ready(self) -> None:
         kapis: APIComp = self.server.lookup_component('klippy_apis')
@@ -89,12 +130,6 @@ class QBE:
 
             self.lockfile.mcus.always(name).current_version = version
 
-        self.lockfile.save()
-
-    def _post_refresh(self, info: dict):
-        self.lockfile.save()
-
-    def hook_post_component_init(self):
         self.lockfile.save()
 
     def init_qbe_views(self, qbefile: str):
@@ -181,15 +216,6 @@ def load(config: ConfigHelper) -> QBE:
     # instantiate the extension
     qbe = QBE(config)
 
-    # hook UpdateManager.component_init
-    async def hooked_component_init(self):
-        result = await self._original_component_init()
-        qbe.hook_post_component_init()
-        return result
-
-    update_manager._original_component_init = update_manager.component_init
-    update_manager.component_init = MethodType(hooked_component_init, update_manager)
-
     # hook UpdateManager._handle_full_update_request
     if type_and_api_def := update_manager.server.moonraker_app.json_rpc.get_method('machine.update.full'):
         cb = update_manager._handle_full_update_request = MethodType(hooked_handle_full_update_request, update_manager)
@@ -203,4 +229,3 @@ def load(config: ConfigHelper) -> QBE:
 
 
 __all__ = ['load']
-

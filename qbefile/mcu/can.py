@@ -14,3 +14,8 @@ class CanMCU(BaseMCU):
 
         self.can_id = str(config.pop('can-id'))
         self.interface = config.pop('interface', 'can0')
+
+    def update(self, source: CanMCU) -> None:
+        super().update(source)
+        self.can_id = source.can_id
+        self.interface = source.interface

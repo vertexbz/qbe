@@ -6,12 +6,61 @@ import dataclasses
 from dataclasses import fields, MISSING, Field, is_dataclass
 import enum
 import sys
+from typing import get_type_hints, get_args, get_origin, Union
 
 
 class CustomEncode:
     @abstractmethod
     def custom_encode(self):
         raise NotImplementedError('Subclasses must implement')
+
+
+class UniversalDecoder:
+    @classmethod
+    def _field_decoder(cls, field: Field, typ: type):
+        if get_origin(typ) in (list,):
+            typ = get_args(typ)[0]
+
+        if get_origin(typ) in (Union,):
+            args = list(filter(lambda t: t is not type(None), get_args(typ)))
+            if len(args) == 1:
+                typ = args[0]
+
+        if decoder := field.metadata.get('decoder'):
+            return decoder
+
+        if (decoder := getattr(typ, 'decode', None)) and callable(decoder):
+            return decoder
+
+        if issubclass(typ, enum.Enum):
+            return typ
+
+        return None
+
+    @classmethod
+    def _field_name(cls, field: Field):
+        return field.metadata.get('alias', field.name)
+
+    @classmethod
+    def _decode_params(cls, data: dict):
+        normalized_data = dict()
+
+        types = get_type_hints(cls)
+        for field in fields(cls):
+            dict_key = cls._field_name(field)
+            if dict_key in data:
+                value = data.get(dict_key)
+
+                if decoder := cls._field_decoder(field, types[field.name]):
+                    value = decoder(value)
+
+                normalized_data[field.name] = value
+
+        return normalized_data
+
+    @classmethod
+    def decode(cls, data: dict):
+        return cls(**cls._decode_params(data))  # type: ignore
 
 
 def field(
@@ -70,4 +119,4 @@ def encode(obj):
         return copy.deepcopy(obj)
 
 
-__all__ = ['field', 'encode', 'CustomEncode']
+__all__ = ['field', 'encode', 'CustomEncode', 'UniversalDecoder']

@@ -34,3 +34,10 @@ class Dependency:
     @abstractmethod
     def data_source(self) -> ManifestDataSource:
         pass
+
+    def update(self, source: Dependency) -> None:
+        if type(self) is not type(source):
+            raise TypeError('Update source dependency must be the same type!')
+
+        self._enabled = source._enabled
+        self._options = source._options

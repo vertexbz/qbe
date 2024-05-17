@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from .changes import Changed, Changes
 from .dependency import build as build_dependency, Dependency
 from .mcu import build as build_mcu, BaseMCU
 from ..adapter.file import readfile
@@ -29,6 +30,36 @@ class QBEFile:
 
         self._requires = [build_dependency(dep) for dep in data.pop('requires', [])]
         self._mcus = [build_mcu(name, mcu) for name, mcu in data.pop('mcus', {}).items()]
+
+    def update(self):
+        data = load_yaml(readfile(self._path))
+
+        added = Changed.new()
+
+        new_packages = [build_dependency(dep) for dep in data.pop('requires', [])]
+        new_mcus = [build_mcu(name, mcu) for name, mcu in data.pop('mcus', {}).items()]
+
+        current_packages = {dep.identifier: dep for dep in self._requires}
+        for pkg in new_packages:
+            if pkg.identifier not in current_packages:
+                added.packages.append(pkg)
+            else:
+                current_packages.pop(pkg.identifier).update(pkg)
+
+        current_mcus = {mcu.name: mcu for mcu in self._mcus}
+        for mcu in new_mcus:
+            if mcu.name not in current_mcus:
+                added.mcus.append(mcu)
+            else:
+                current_mcus.pop(mcu.name).update(mcu)
+
+        return Changes(
+            added=added,
+            removed=Changed(
+                packages=list(current_packages.values()),
+                mcus=list(current_mcus.values())
+            )
+        )
 
 
 def load(file: str) -> QBEFile:

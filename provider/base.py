@@ -4,7 +4,7 @@ from abc import abstractmethod
 import os
 from typing import TYPE_CHECKING, Type, TypeVar, Generic, Union, Optional
 
-from ..adapter.yaml import PkgTag
+from ..adapter.yaml import PkgTag, VarTag
 from ..updatable.data_source.internal import InternalDataSource
 
 if TYPE_CHECKING:
@@ -51,3 +51,12 @@ class Provider(Generic[T]):
 
     def _src_path(self, file: Union[PkgTag, str]):
         return os.path.join(self._base_path(file), str(file))
+
+    def _dst_path(self, op_target: Union[str, VarTag]):
+        if isinstance(op_target, VarTag):
+            tmp = op_target.in_dict(self._updatable.template_context())
+            if not isinstance(tmp, str):
+                raise ValueError('invalid variable ' + op_target.variable)
+            return tmp
+
+        return op_target
