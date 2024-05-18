@@ -17,29 +17,27 @@ from ....utils import pretty_print_time
 
 if TYPE_CHECKING:
     from server import Server
-    from ...update_manager.update_manager import CommandHelper
+    from .updaters_wrapper import UpdatersWrapper
     from ...machine import Machine
     from ...klippy_apis import KlippyAPI as APIComp
     from ..updatable import Updatable
-    from ..lockfile import LockFile
 
 
 class QBEDeployer(BaseDeploy):
     TEXT_PROCESS_STARTING = 'Updating'
 
-    def __init__(self, server: Server, lockfile: LockFile, cmd_helper: CommandHelper, updatable: Updatable) -> None:
-        mocked_config = MockedConfig(server, {})
+    def __init__(self, updaters_wrapper: UpdatersWrapper, updatable: Updatable) -> None:
         super().__init__(
-            mocked_config,   # type: ignore
-            cmd_helper,
+            MockedConfig(updaters_wrapper.server, {}),   # type: ignore
+            updaters_wrapper.update_manager.cmd_helper,
             name=updatable.name,
             prefix="QBE Package",
             cfg_hash='fake'
         )
-        self._server: Server = server
-        self._machine: Machine = server.lookup_component("machine")
-        self._kapis: APIComp = server.lookup_component('klippy_apis')
-        self._lockfile = lockfile
+        self._updaters_wrapper = updaters_wrapper
+        self._server: Server = updaters_wrapper.server
+        self._machine: Machine = updaters_wrapper.server.lookup_component("machine")
+        self._kapis: APIComp = updaters_wrapper.server.lookup_component('klippy_apis')
         self._updatable = updatable
 
     @classmethod
@@ -67,12 +65,12 @@ class QBEDeployer(BaseDeploy):
         if self._updatable.lock.status.unfinished():
             return
         await self._updatable.refresh()
-        self._lockfile.save()
+        self._updaters_wrapper.lockfile.save()
 
     async def update(self) -> bool:
         self.cmd_helper.notify_update_response(f'{self.TEXT_PROCESS_STARTING} {self.display_name}...')
 
-        with MoonrakerProgress(self._lockfile, logger=self.notify_status) as progress:
+        with MoonrakerProgress(self._updaters_wrapper.lockfile, logger=self.notify_status) as progress:
             await self._execute(progress)
 
             for trig, updatable in progress.triggers:

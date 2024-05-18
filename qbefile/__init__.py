@@ -43,15 +43,21 @@ class QBEFile:
         for pkg in new_packages:
             if pkg.identifier not in current_packages:
                 added.packages.append(pkg)
+                self._requires.append(pkg)
             else:
                 current_packages.pop(pkg.identifier).update(pkg)
+        for pkg in current_packages.values():
+            self._requires.remove(pkg)
 
         current_mcus = {mcu.name: mcu for mcu in self._mcus}
         for mcu in new_mcus:
             if mcu.name not in current_mcus:
                 added.mcus.append(mcu)
+                self._mcus.append(mcu)
             else:
                 current_mcus.pop(mcu.name).update(mcu)
+        for mcu in current_mcus.values():
+            self._mcus.remove(mcu)
 
         return Changes(
             added=added,
