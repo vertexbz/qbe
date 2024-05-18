@@ -17,6 +17,7 @@ class Watcher:
         self._callback = callback
         self._path = path
 
+        self._pause_level = 0
         self._watch_descriptor = None
         self._inotify = INotify(nonblocking=True)
         self._event_loop.add_reader(self._inotify.fileno(), self._handle_inotify_read)
@@ -50,10 +51,20 @@ class Watcher:
 
     @contextmanager
     def paused(self):
-        self._disable()
+        self.pause()
         try:
             yield None
         finally:
+            self.resume()
+
+    def pause(self):
+        if self._pause_level == 0:
+            self._disable()
+        self._pause_level += 1
+
+    def resume(self):
+        self._pause_level = max(self._pause_level - 1, 0)
+        if self._pause_level == 0:
             self._enable()
 
     def _handle_inotify_read(self) -> None:

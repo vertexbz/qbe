@@ -36,3 +36,6 @@ class Provided(CustomEncode):
             result._data[k] = ProviderProvided.decode(v)
 
         return result
+
+    def is_empty(self):
+        return len(self._data) == 0

@@ -7,10 +7,7 @@ from ..adapter.dataclass import encode
 from ..updatable.data_source.git import TaggedCommit
 
 if TYPE_CHECKING:
-    from server import Server
-    from ...update_manager.update_manager import CommandHelper
     from ..package.base import Package
-    from ..lockfile import LockFile
 
 
 class QBERemover(QBEDeployer):
@@ -18,8 +15,9 @@ class QBERemover(QBEDeployer):
 
     _updatable: Package
 
-    def __init__(self, server: Server, lockfile: LockFile, cmd_helper: CommandHelper, updatable: Package) -> None:
-        super().__init__(server, lockfile, cmd_helper, updatable)
+    @property
+    def package(self) -> Package:
+        return self._updatable
 
     async def _execute(self, progress):
         try:
@@ -30,10 +28,15 @@ class QBERemover(QBEDeployer):
 
     async def _on_complete(self):
         self.notify_status('Removed!', is_complete=True)
-        self.cmd_helper.get_updaters().pop(self.display_name, None)
+        try:
+            self._updaters_wrapper.remove_package(self._updatable.identifier)
+        except KeyError:
+            pass
+
         if awaiter := self.close():
             await awaiter
-        self.cmd_helper.notify_update_refreshed()
+
+        self._updaters_wrapper.notify_update_refreshed()
 
     def get_update_status(self) -> Dict[str, Any]:
         return {

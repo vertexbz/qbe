@@ -28,3 +28,15 @@ class BlindProxy(Generic[Proxied], Proxied if TYPE_CHECKING else object):
         watcher: Watcher = super().__getattribute__('_watcher')
         with watcher.paused():
             return original()
+
+    def hook_lock(self, original: Callable[[], None]) -> None:
+        watcher: Watcher = super().__getattribute__('_watcher')
+        watcher.pause()
+        return original()
+
+    def hook_unlock(self, original: Callable[[], None]) -> None:
+        watcher: Watcher = super().__getattribute__('_watcher')
+        try:
+            return original()
+        finally:
+            watcher.resume()

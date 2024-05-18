@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+from asyncio import Handle
 import os.path
 from types import MethodType
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from inotify_simple import Event
 
 from .blind_proxy import BlindProxy
-from .deployer import QBEDeployer
-from .remover import QBERemover
+from .updaters_wrapper import UpdatersWrapper
 from .utils import symlink, register_directory, is_mcu_key, NoLowerString
 from .watcher import Watcher
 from ..lockfile import LockFile
@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
 class QBE:
     def __init__(self, config: ConfigHelper) -> None:
+        self._debouncer: Optional[Handle] = None
         self.server = config.get_server()
 
         # Register handlers
@@ -45,36 +46,41 @@ class QBE:
 
         lockfile = LockFile.load(for_qbe_file(self.qbefile))
         self.lock_watch = Watcher(self.server.event_loop, lockfile.path, self._update_packages)
-        self.lockfile = BlindProxy(lockfile, self.lock_watch)
+        self.lockfile: LockFile = BlindProxy(lockfile, self.lock_watch)
 
         # Init file manager dirs
         self.init_qbe_views(self.qbefile.path)
 
-        # Load qbe and lock file
-        update_manager: UpdateManager = self.server.lookup_component('update_manager')
-        updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, QBEPackage(self.lockfile.qbe))
-        update_manager.updaters[updater.display_name] = updater
+        # Wrap updaters
+        self.uw = UpdatersWrapper(self.server, self.lockfile)
+
+        # Init updaters
+        self.uw.add_updater(QBEPackage(self.lockfile.qbe))
 
         processed_identifiers = set()
         for dep in self.qbefile.requires:
             processed_identifiers.add(dep.identifier)
-            pkg = build_package(dep, self.lockfile.requires.always(dep.identifier))
-            updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, pkg)
-            update_manager.updaters[updater.display_name] = updater
+            self.uw.add_updater(
+                build_package(dep, self.lockfile.requires.always(dep.identifier))
+            )
 
         for mcu_config in self.qbefile.mcus:
-            mcu = MCU(mcu_config, self.lockfile.mcus.always(mcu_config.name))
-            updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, mcu)
-            update_manager.updaters[updater.display_name] = updater
+            self.uw.add_updater(
+                MCU(mcu_config, self.lockfile.mcus.always(mcu_config.name))
+            )
 
         for identifier, lock in self.lockfile.requires.difference(processed_identifiers).items():
-            pkg = build_package(from_lock(identifier, lock), lock)
-            updater = QBERemover(self.server, self.lockfile, update_manager.cmd_helper, pkg)
-            update_manager.updaters[updater.display_name] = updater
+            self.uw.add_remover(
+                build_package(from_lock(identifier, lock), lock)
+            )
 
     async def _update_packages(self, _: Event):
-        update_manager: UpdateManager = self.server.lookup_component('update_manager')
+        if self._debouncer:
+            self._debouncer.cancel()
+        self._debouncer = self.server.event_loop.delay_callback(2, self._update_packages_debounced)
 
+    async def _update_packages_debounced(self):
+        self._debouncer = None
         try:
             updates = self.qbefile.update()
             self.lockfile.update()
@@ -82,28 +88,45 @@ class QBE:
             self.server.add_warning(f'Failed reloading qbe/lock file\n{e}')
         else:
             for dep in updates.added.packages:
-                pkg = build_package(dep, self.lockfile.requires.always(dep.identifier))
-                updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, pkg)
-                update_manager.updaters[updater.display_name] = updater
+                updater = self.uw.add_updater(
+                    build_package(dep, self.lockfile.requires.always(dep.identifier))
+                )
                 await updater.initialize()
+                await updater.refresh()
 
             for mcu_config in updates.added.mcus:
-                mcu = MCU(mcu_config, self.lockfile.mcus.always(mcu_config.name))
-                updater = QBEDeployer(self.server, self.lockfile, update_manager.cmd_helper, mcu)
-                update_manager.updaters[updater.display_name] = updater
+                updater = self.uw.add_updater(
+                    MCU(mcu_config, self.lockfile.mcus.always(mcu_config.name))
+                )
                 await updater.initialize()
+                await updater.refresh()
 
+            current_removers = {v.package.identifier for v in self.uw.removers}
             for dep in updates.removed.packages:
-                updater: QBEDeployer = update_manager.updaters.pop(QBEDeployer.build_display_name(dep))  # type: ignore
-                if awaiter := updater.close():
+                if lock := self.lockfile.requires.get(dep.identifier, None):
+                    if lock.provided.is_empty():
+                        current_removers.add(dep.identifier)
+                        self.lockfile.requires.pop(dep.identifier)
+                        continue
+
+                    if dep.identifier in current_removers:
+                        current_removers.remove(dep.identifier)
+
+                    updater = self.uw.add_remover(
+                        build_package(from_lock(dep.identifier, lock), lock)
+                    )
+                    await updater.initialize()
+                    await updater.refresh()
+
+            for identifier in current_removers:
+                if awaiter := self.uw.remove_package(identifier).close():
                     await awaiter
 
             for mcu in updates.removed.mcus:
-                updater: QBEDeployer = update_manager.updaters.pop(QBEDeployer.build_display_name(mcu))  # type: ignore
-                if awaiter := updater.close():
+                if awaiter := self.uw.remove_mcu(mcu.name).close():
                     await awaiter
 
-            update_manager.cmd_helper.notify_update_refreshed()
+            self.uw.notify_update_refreshed()
 
     async def component_init(self) -> None:
         pass
@@ -118,6 +141,7 @@ class QBE:
         names = filter(is_mcu_key, await kapis.get_object_list())
         result = await kapis.subscribe_objects({n: None for n in names})
 
+        changed = False
         for name, info in [(k, v) for k, v in result.items() if is_mcu_key(k)]:
             version = info.get('mcu_version', None)
             if version is None:
@@ -128,9 +152,15 @@ class QBE:
             else:
                 name = name.removeprefix('mcu ')
 
-            self.lockfile.mcus.always(name).current_version = version
+            mcu_lock = self.lockfile.mcus.always(name)
 
-        self.lockfile.save()
+            if mcu_lock.current_version != version:
+                mcu_lock.current_version = version
+                changed = True
+
+        if changed:
+            self.lockfile.save()
+            self.uw.notify_update_refreshed()
 
     def init_qbe_views(self, qbefile: str):
         # Autoload dirs
@@ -195,9 +225,18 @@ async def hooked_handle_full_update_request(self: UpdateManager, web_request: We
         return "ok"
 
 
-def hooked_parse_upload_args(self, upload_args: dict[str, Any]) -> dict[str, Any]:
-    if 'root' in upload_args and upload_args['root'].startswith('QBE :: '):
+def hooked_parse_upload_args(self: FileManager, upload_args: dict[str, Any]) -> dict[str, Any]:
+    if (root := upload_args.get('root', '')) and root.startswith('QBE :: '):
         upload_args['root'] = NoLowerString(upload_args['root'])
+
+        qbe: QBE = self.server.lookup_component('qbe')
+        if root == 'QBE :: Config':
+            old = self.file_paths[root]
+            self.file_paths[root] = qbe.qbefile.path
+            try:
+                return self._original_parse_upload_args(upload_args)
+            finally:
+                self.file_paths[root] = old
 
     return self._original_parse_upload_args(upload_args)
 

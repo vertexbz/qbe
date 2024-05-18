@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import stat
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
@@ -27,7 +28,13 @@ def symlink(src: str, dst_dir: str, hard=False) -> Optional[str]:
 
     dst = os.path.join(dst_dir, os.path.basename(to_link))
     if os.path.exists(dst):
-        return dst
+        if hard and stat.S_ISREG(os.lstat(dst).st_mode):
+            return dst
+
+        if not hard and os.path.islink(dst):
+            return dst
+
+        os.unlink(dst)
 
     if hard:
         os.link(to_link, dst)
