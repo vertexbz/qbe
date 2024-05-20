@@ -3,14 +3,15 @@ from __future__ import annotations
 from asyncio import Handle
 import os.path
 from types import MethodType
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Optional
 
 from inotify_simple import Event
 
 from .blind_proxy import BlindProxy
 from .updaters_wrapper import UpdatersWrapper
-from .utils import symlink, register_directory, is_mcu_key, NoLowerString
+from .utils import is_mcu_key
 from .watcher import Watcher
+from .file_manager import hook as hook_file_manager
 from ..lockfile import LockFile
 from ..lockfile.utils import for_qbe_file
 from ..mcu import MCU
@@ -25,8 +26,8 @@ if TYPE_CHECKING:
     from confighelper import ConfigHelper
     from components.klippy_apis import KlippyAPI as APIComp
     from components.update_manager.update_manager import UpdateManager
-    from components.file_manager.file_manager import FileManager
     from common import WebRequest
+    from .file_manager.file_manager import ExtendedFileManager
 
 
 class QBE:
@@ -163,36 +164,24 @@ class QBE:
             self.uw.notify_update_refreshed()
 
     def init_qbe_views(self, qbefile: str):
-        # Autoload dirs
-        views_dir = os.path.join(paths.config_root, '.qbe-views')
-        if not os.path.exists(views_dir):
-            os.makedirs(views_dir)
-
         root_contents = os.listdir(paths.config_root)
+        file_manager: ExtendedFileManager = self.server.lookup_component('file_manager')
 
+        # Autoload dirs
         for to_link in [d for d in root_contents if d.startswith('autoload-')]:
-            dst = symlink(os.path.join(paths.config_root, to_link), views_dir)
-            if dst:
-                name = ' '.join([w.strip().capitalize() for w in os.path.basename(dst).split('-')])
-                register_directory(self.server, 'QBE :: ' + name, dst, False)
+            dst = os.path.join(paths.config_root, to_link)
+            name = ' '.join([w.strip().capitalize() for w in os.path.basename(dst).split('-')])
+            file_manager.register_directory('QBE :: ' + name, dst, False)
 
         # Static config
-        configs_views_dir = os.path.join(views_dir, 'configs')
-        if not os.path.exists(configs_views_dir):
-            os.makedirs(configs_views_dir)
-
-        for to_link in [f for f in root_contents if f.endswith('.conf') or f.endswith('.cfg')]:
-            symlink(os.path.join(paths.config_root, to_link), configs_views_dir)
-        register_directory(self.server, 'QBE :: Root Configs', configs_views_dir, False)
+        file_manager.register_virtual_directory(
+            'QBE :: Root Configs',
+            [os.path.join(paths.config_root, f) for f in root_contents if f.endswith('.conf') or f.endswith('.cfg')],
+            False
+        )
 
         # QBE Config
-        config_views_dir = os.path.join(views_dir, 'config')
-        if not os.path.exists(config_views_dir):
-            os.makedirs(config_views_dir)
-
-        for to_link in [qbefile]:
-            symlink(to_link, config_views_dir, hard=True)
-        register_directory(self.server, 'QBE :: Config', config_views_dir, True)
+        file_manager.register_virtual_directory('QBE :: Config', [qbefile], True)
 
 
 async def hooked_update_klipper_repo(*_) -> None:
@@ -225,25 +214,12 @@ async def hooked_handle_full_update_request(self: UpdateManager, web_request: We
         return "ok"
 
 
-def hooked_parse_upload_args(self: FileManager, upload_args: dict[str, Any]) -> dict[str, Any]:
-    if (root := upload_args.get('root', '')) and root.startswith('QBE :: '):
-        upload_args['root'] = NoLowerString(upload_args['root'])
-
-        qbe: QBE = self.server.lookup_component('qbe')
-        if root == 'QBE :: Config':
-            old = self.file_paths[root]
-            self.file_paths[root] = qbe.qbefile.path
-            try:
-                return self._original_parse_upload_args(upload_args)
-            finally:
-                self.file_paths[root] = old
-
-    return self._original_parse_upload_args(upload_args)
-
-
 def load(config: ConfigHelper) -> QBE:
+    # hook FileManager
+    hook_file_manager(config)
+
+    # Prepare
     server = config.get_server()
-    file_manager: FileManager = server.load_component(config, 'file_manager')
     update_manager: UpdateManager = server.load_component(config, 'update_manager')
 
     # hook UpdateManager._update_klipper_repo
@@ -256,13 +232,9 @@ def load(config: ConfigHelper) -> QBE:
     qbe = QBE(config)
 
     # hook UpdateManager._handle_full_update_request
-    if type_and_api_def := update_manager.server.moonraker_app.json_rpc.get_method('machine.update.full'):
+    if type_and_api_def := server.moonraker_app.json_rpc.get_method('machine.update.full'):
         cb = update_manager._handle_full_update_request = MethodType(hooked_handle_full_update_request, update_manager)
         object.__setattr__(type_and_api_def[1], 'callback', cb)
-
-    # hook FileManager._parse_upload_args
-    file_manager._original_parse_upload_args = file_manager._parse_upload_args
-    file_manager._parse_upload_args = MethodType(hooked_parse_upload_args, file_manager)
 
     return qbe
 
