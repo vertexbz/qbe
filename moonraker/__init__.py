@@ -105,7 +105,7 @@ class QBE:
             current_removers = {v.package.identifier for v in self.uw.removers}
             for dep in updates.removed.packages:
                 if lock := self.lockfile.requires.get(dep.identifier, None):
-                    if lock.provided.is_empty():
+                    if not lock.is_installed():
                         current_removers.add(dep.identifier)
                         self.lockfile.requires.pop(dep.identifier)
                         continue
