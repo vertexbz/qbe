@@ -34,11 +34,11 @@ class ExtendedFileManager(FileManager):
 
     async def _handle_list_roots(self, web_request: WebRequest) -> List[Dict[str, Any]]:
         result = await super()._handle_list_roots(web_request)
-        for name, paths in self._virtual_dirs.items():
+        for name, config in self._virtual_dirs.items():
             perms = "rw" if name in self.full_access_roots else "r"
             result.append({
                 "name": name,
-                "path": f'/virtual/{name}',  # TODO is it fine? should care?
+                "path": self._fake_directory_path(config),
                 "permissions": perms
             })
         return result
@@ -103,29 +103,26 @@ class ExtendedFileManager(FileManager):
             if len(parts) > 1:
                 if file := config.file_by_virtual_path(parts[1]):
                     return config.name, file.path
-            return config.name, f'/virtual/{config.name}'  # TODO is it fine? should care?
+            return config.name, self._fake_directory_path(config)
         return super()._convert_request_path(request_path)
 
     def _list_directory(self, path: str, root: str, is_extended: bool = False) -> Dict[str, Any]:
         if config := self._virtual_dirs.get(root, None):
-            if not os.path.isdir(path):
-                raise self.server.error(
-                    f"Directory does not exist ({path})")
-            self.check_reserved_path(path, False)
             flist: Dict[str, Any] = {'dirs': [], 'files': []}
             for file in config.files:
-                full_path = file.path
-                if not os.path.exists(full_path):
+                self.check_reserved_path(file.path, False)
+                if not os.path.exists(file.path):
                     continue
-                path_info = self.get_path_info(full_path, root)
-                if os.path.isdir(full_path):
+
+                path_info = self.get_path_info(file.path, root)
+                if os.path.isdir(file.path):
                     path_info['dirname'] = file.name
                     flist['dirs'].append(path_info)
-                elif os.path.isfile(full_path):
+                elif os.path.isfile(file.path):
                     path_info['filename'] = file.name
                     flist['files'].append(path_info)
 
-            flist['disk_usage'] = shutil.disk_usage(path)._asdict()
+            flist['disk_usage'] = shutil.disk_usage('/')._asdict()
             flist['root_info'] = {
                 'name': root,
                 'permissions': "rw" if root in self.full_access_roots else "r"
@@ -201,3 +198,7 @@ class ExtendedFileManager(FileManager):
                 self._sched_changed_event("root_update", name, path, immediate=True)
 
         return True
+
+    @staticmethod
+    def _fake_directory_path(directory: VirtualDirectory):
+        return f'/virtual/{directory.name}'
