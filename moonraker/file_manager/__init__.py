@@ -19,7 +19,7 @@ def register_static_file_handler(
     self: Server, pattern: str, file_path: str, force: bool = False,
     handler: Type[FileRequestHandler] = FileRequestHandler
 ) -> None:
-    pattern = urllib.parse.quote(pattern, safe='/')
+    pattern = urllib.parse.quote(pattern, safe='/:')
 
     if pattern[0] != "/":
         pattern = "/server/files/" + pattern
