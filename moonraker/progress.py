@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Callable
 
-from .formatter import Formatter
 from ..updatable.progress import ProgressRoot
 
 if TYPE_CHECKING:
@@ -14,7 +13,7 @@ ANSI_ESCAPE_CODES = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 class MoonrakerProgress(ProgressRoot):
     def __init__(self, lockfile: LockFile, logger: Callable[[str], None]):
-        super().__init__(lockfile, formatter=Formatter())
+        super().__init__(lockfile)
         self._logger = logger
 
     def log(self, message: str) -> None:

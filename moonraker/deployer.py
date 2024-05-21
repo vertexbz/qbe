@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 import time
 from typing import TYPE_CHECKING, Dict, Any
 
@@ -9,7 +8,6 @@ from .progress import MoonrakerProgress
 from .utils import format_version
 from ..adapter.command import sudo_systemctl_daemon_reload
 from ..adapter.dataclass import encode
-from ..nice_names import nice_names
 from ..trigger.gcode import GCodeTrigger
 from ..trigger.service_reload import ServiceReloadTrigger
 from ...update_manager.base_deploy import BaseDeploy
@@ -40,24 +38,6 @@ class QBEDeployer(BaseDeploy):
         self._kapis: APIComp = updaters_wrapper.server.lookup_component('klippy_apis')
         self._updatable = updatable
 
-    @classmethod
-    def build_display_name(cls, updatable: Updatable):
-        words = []
-        for part in re.split('[-_ ]+', updatable.name):
-            words.append(nice_names.get(part.strip().capitalize()))
-
-        name = ' '.join(words)
-
-        updatable_type = updatable.type
-        if updatable_type is None:
-            return name
-
-        return f'{updatable_type.capitalize()} :: {name}'
-
-    @property
-    def display_name(self):
-        return self.build_display_name(self._updatable)
-
     async def initialize(self):
         return {}
 
@@ -68,7 +48,7 @@ class QBEDeployer(BaseDeploy):
         self._updaters_wrapper.lockfile.save()
 
     async def update(self) -> bool:
-        self.cmd_helper.notify_update_response(f'{self.TEXT_PROCESS_STARTING} {self.display_name}...')
+        self.cmd_helper.notify_update_response(f'{self.TEXT_PROCESS_STARTING} {self.name}...')
 
         with MoonrakerProgress(self._updaters_wrapper.lockfile, logger=self.notify_status) as progress:
             await self._execute(progress)

@@ -45,26 +45,26 @@ class UpdatersWrapper:
 
     def add_updater(self, updatable: Updatable) -> QBEDeployer:
         deployer = QBEDeployer(self, updatable)
-        self._update_manager.updaters[deployer.display_name] = deployer
+        self._update_manager.updaters[deployer.name] = deployer
 
         if isinstance(updatable, MCU):
-            self._mcu_names_map[updatable.name] = deployer.display_name
+            self._mcu_names_map[updatable.name] = deployer.name
 
         if isinstance(updatable, Package):
-            self._identifiers_map[updatable.identifier] = deployer.display_name
+            self._identifiers_map[updatable.identifier] = deployer.name
 
         return deployer
 
     def add_remover(self, package: Package) -> QBEDeployer:
         deployer = QBERemover(self, package)
-        self._update_manager.updaters[deployer.display_name] = deployer
-        self._identifiers_map[package.identifier] = deployer.display_name
+        self._update_manager.updaters[deployer.name] = deployer
+        self._identifiers_map[package.identifier] = deployer.name
         return deployer
 
     def remove_mcu(self, name: str) -> QBEDeployer:
-        display_name = self._mcu_names_map.pop(name)
-        return self._update_manager.updaters.pop(display_name)
+        name = self._mcu_names_map.pop(name)
+        return self._update_manager.updaters.pop(name)
 
     def remove_package(self, identifier: Identifier) -> QBEDeployer:
-        display_name = self._identifiers_map.pop(identifier)
-        return self._update_manager.updaters.pop(display_name)
+        name = self._identifiers_map.pop(identifier)
+        return self._update_manager.updaters.pop(name)

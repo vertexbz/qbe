@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from functools import cached_property
 from getpass import getuser
 import os.path
+import re
 from typing import TYPE_CHECKING, Optional
 
 from .version import Version
 from ..paths import paths
+from ..nice_names import nice_names
 
 if TYPE_CHECKING:
     from .progress.updatable import UpdatableProgress
@@ -61,6 +64,20 @@ class Updatable:
     @abstractmethod
     def recipie_dirty(self) -> bool:
         raise NotImplementedError("Not implemented")
+
+    @cached_property
+    def display_name(self):
+        words = []
+        for part in re.split('[-_ ]+', self.name):
+            words.append(nice_names.get(part.strip().capitalize()))
+
+        name = ' '.join(words)
+
+        updatable_type = self.type
+        if updatable_type is None:
+            return name
+
+        return f'{updatable_type.capitalize()} :: {name}'
 
     async def refresh(self, progress: Optional[UpdatableProgress] = None, **kw) -> None:
         await self.source.refresh(self._lock, stdout_callback=progress.log if progress else None)
