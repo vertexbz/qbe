@@ -19,6 +19,9 @@ class MessageType(enum.Enum):
 class LogFormatter:
 
     def format_updatable(self, updatable: Updatable) -> str:
+        if updatable.type == 'firmware':
+            return f'MCU {updatable.name}:'
+
         return f'{updatable.name}:'
 
     def format_provider(self, provider: Provider) -> str:
