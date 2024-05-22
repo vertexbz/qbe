@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import time
 from typing import TYPE_CHECKING, Dict, Any
 
@@ -30,6 +31,7 @@ class QBEDeployer(BaseDeploy):
             updaters_wrapper.update_manager.cmd_helper,
             name=updatable.display_name, prefix='', cfg_hash='fake'
         )
+        self.prefix = updatable.display_name
         self._updaters_wrapper = updaters_wrapper
         self._server: Server = updaters_wrapper.server
         self._machine: Machine = updaters_wrapper.server.lookup_component("machine")
@@ -48,7 +50,7 @@ class QBEDeployer(BaseDeploy):
     async def update(self) -> bool:
         self.cmd_helper.notify_update_response(f'{self.TEXT_PROCESS_STARTING} {self.name}...')
 
-        with MoonrakerProgress(self._updaters_wrapper.lockfile, logger=self.notify_status) as progress:
+        with MoonrakerProgress(self._updaters_wrapper.lockfile, logger=self.qbe_log) as progress:
             await self._execute(progress)
 
             for trig, updatable in progress.triggers:
@@ -142,6 +144,10 @@ class QBEDeployer(BaseDeploy):
             self.log_info(f"Next refresh in: {pretty_print_time(remaining_time)}")
 
         return False
+
+    def qbe_log(self, msg: str, is_complete: bool = False) -> None:
+        logging.debug(msg)
+        self.cmd_helper.notify_update_response(msg, is_complete)
 
     def _save_state(self) -> None:
         pass
