@@ -29,9 +29,8 @@ class QBEDeployer(BaseDeploy):
         super().__init__(
             MockedConfig(updaters_wrapper.server, {}),   # type: ignore
             updaters_wrapper.update_manager.cmd_helper,
-            name=updatable.display_name, prefix='', cfg_hash='fake'
+            prefix='QBE ::', name=updatable.display_name, cfg_hash='fake'
         )
-        self.prefix = updatable.display_name
         self._updaters_wrapper = updaters_wrapper
         self._server: Server = updaters_wrapper.server
         self._machine: Machine = updaters_wrapper.server.lookup_component("machine")
